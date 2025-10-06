@@ -43,25 +43,30 @@ grouping:
     total_weight_kg: "sum(total_weight)"
     total_packages: "sum(total_packaging)"
     lines_count: "count()"
+    date_agg: "min(date)"        # ← добавили агрегат даты
 
 output:
   headers:
-    - "לקוח"                 # возьмём hebrew-имя (или russian — твой выбор)
-    - "מזהה לקוח"            # license/id
+    - "לקוח"
+    - "לקוח ברוסית"              # ← исправлено
+    - "קוד לקוח"
+    - "מזהה לקוח"
     - "מס’ הזמנה"
     - "תאריך"
     - "סה”כ משקל (ק\"ג)"
     - "סה”כ אריזות"
-    - "כמות שורות"
+    - "כתובת"                    # ← исправлено
     - "יישוב (raw)"
   map:
-    "לקוח": client_name_on_hebrew          # или client_name_on_russian
-    "מזהה לקוח": client_license_number     # или client_id
+    "לקוח": client_name_on_hebrew
+    "לקוח ברוסית": client_name_on_russian
+    "קוד לקוח": client_id
+    "מזהה לקוח": client_license_number
     "מס’ הזמנה": order_id
-    "תאריך": date
+    "תאריך": date_agg            # ← используем агрегированную дату
     "סה”כ משקל (ק\"ג)": total_weight_kg
     "סה”כ אריזות": total_packages
-    "כמות שורות": lines_count
+    "כתובת": client_address
     "יישוב (raw)": city
 
 logging:
