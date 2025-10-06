@@ -1,0 +1,18 @@
+excel-flow/
+  cmd/flow/                 # main: точка входа CLI
+  internal/
+    config/                 # загрузка/валидация конфигурации
+    log/                    # zerolog обёртка
+    db/                     # sqlite: init/open, миграции
+    repo/                   # доступ к таблицам (cities, clients, vehicles)
+    xlsx/                   # чтение .xlsx (общие утилиты)
+    csvr/                   # чтение .csv (общие утилиты)
+    normalize/              # нормализация строк/дат/чисел
+    ingest/                 # парсеры конкретных файлов (SAP, клиенты, города)
+    mapping/                # описание маппинга (source→template)
+    writer/                 # запись промежуточных/итоговых .xlsx
+  migrations/               # *.sql для схемы sqlite
+  configs/                  # config.yaml (позже)
+  data/                     # локальные справочники/шаблоны (dev)
+  testdata/                 # примеры входных файлов (копии)
+  README.md
