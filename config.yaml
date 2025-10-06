@@ -1,0 +1,68 @@
+source:
+  file: "משקל.xlsx"
+  sheet: "Sheet1"            # при необходимости: регэксп или другой лист
+  header_row: 1
+  encoding: "auto"
+
+columns:
+  client_id: "קוד כרטיס"
+  client_license_number: "מספר עוסק מורשה"
+  client_name_on_hebrew: "שם לועזי"
+  client_name_on_russian: "שם כרטיס"
+  client_address: "כתובת"
+  order_id: "אסמכתת בסיס"
+  date: "תאריך אסמכתא"
+  total_weight: "סה'כ משקל"
+  total_packaging: "סה'כ אריזות"
+  city: "יישוב"
+
+types:
+  date: "date"
+  total_weight: "number"
+  total_packaging: "number"
+
+transforms:
+  decimal_separator: "."
+  weight_multiplier: 1.0
+  trim_whitespace: true
+  unicode_nfc: true
+
+filters:
+  skip_negative_rows:
+    fields: ["total_weight", "total_packaging"]   # < - Явно, к каким полям применяем
+    enabled: true
+  min_weight: 0
+  required:
+    - client_license_number
+    - order_id
+
+grouping:
+  keys: [client_license_number, order_id]
+  date_aggregate: "min"
+  aggregates:
+    total_weight_kg: "sum(total_weight)"
+    total_packages: "sum(total_packaging)"
+    lines_count: "count()"
+
+output:
+  headers:
+    - "לקוח"                 # возьмём hebrew-имя (или russian — твой выбор)
+    - "מזהה לקוח"            # license/id
+    - "מס’ הזמנה"
+    - "תאריך"
+    - "סה”כ משקל (ק\"ג)"
+    - "סה”כ אריזות"
+    - "כמות שורות"
+    - "יישוב (raw)"
+  map:
+    "לקוח": client_name_on_hebrew          # или client_name_on_russian
+    "מזהה לקוח": client_license_number     # или client_id
+    "מס’ הזמנה": order_id
+    "תאריך": date
+    "סה”כ משקל (ק\"ג)": total_weight_kg
+    "סה”כ אריזות": total_packages
+    "כמות שורות": lines_count
+    "יישוב (raw)": city
+
+logging:
+  level: "info"
