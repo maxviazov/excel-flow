@@ -32,45 +32,80 @@ transforms:
 
 filters:
   skip_negative_rows:
-    fields: [ "total_weight", "total_packaging" ]   # < - Явно, к каким полям применяем
     enabled: true
-  min_weight: 0
+    fields:
+      - total_weight
+      - total_packaging
   required:
     - client_license_number
     - order_id
 
 grouping:
-  keys: [ client_license_number, order_id ]
-  date_aggregate: "min"
+  keys:
+    - client_license_number
+    - order_id
   aggregates:
     total_weight_kg: "sum(total_weight)"
     total_packages: "sum(total_packaging)"
     lines_count: "count()"
-    date_agg: "min(date)"        # ← добавили агрегат даты
+    date_agg: "min(date)"
+
+city_extraction:
+  from_address_field: client_address
+  address_pattern: "^([^,]+)"         # всё до первой запятой
+  from_ru_field: district_ru          # если в адресе не нашли — взять из "מחוז"
+  normalize: true
+  ru_to_heb_map: "data/ru_to_heb.csv"     # перевод рус → иврит
+  city_code_map: "data/city_aliases.csv"  # поиск кода по названию на иврите
+  fallback_code: "9999"               # код по умолчанию, если город не найден
+  case_sensitive: false               # игнорировать регистр при поиске
+  output_fields:
+    raw: city_raw                  # извлечённый город (адрес/рус)
+    heb: city_heb                  # название на иврите (после перевода)
+    code: city_code                # код города из словаря
 
 output:
+  file: "output.xlsx"
   headers:
-    - "לקוח"
-    - "לקוח ברוסית"              # ← исправлено
-    - "קוד לקוח"
-    - "מזהה לקוח"
-    - "מס’ הזמנה"
-    - "תאריך"
-    - "סה”כ משקל (ק\"ג)"
-    - "סה”כ אריזות"
-    - "כתובת"                    # ← исправлено
-    - "יישוב (raw)"
+    - לקוח
+    - לקוח ברוסית
+    - קוד לקוח
+    - מזהה לקוח
+    - מס' הזמנה
+    - תאריך
+    - 'סה"כ משקל (ק"ג)'
+    - סה"כ אריזות
+    - כתובת
+    - יישוב (raw)
+    - יישוב (HEB)
+    - קוד יישוב
   map:
-    "לקוח": client_name_on_hebrew
-    "לקוח ברוסית": client_name_on_russian
-    "קוד לקוח": client_id
-    "מזהה לקוח": client_license_number
-    "מס’ הזמנה": order_id
-    "תאריך": date_agg            # ← используем агрегированную дату
-    "סה”כ משקל (ק\"ג)": total_weight_kg
-    "סה”כ אריזות": total_packages
-    "כתובת": client_address
-    "יישוב (raw)": city
+    לקוח: client_name_on_hebrew
+    לקוח ברוסית: client_name_on_russian
+    קוד לקוח: client_id
+    מזהה לקוח: client_license_number
+    מס' הזמנה: order_id
+    תאריך: date_agg
+    'סה"כ משקל (ק"ג)': total_weight_kg
+    סה"כ אריזות: total_packages
+    כתובת: client_address
+    יישוב (raw): city_raw
+    יישוב (HEB): city_heb
+    קוד יישוב: city_code
+
+error_handling:
+  on_missing_column: fail     # fail|warn|skip
+  on_invalid_type: warn       # fail|warn|skip|coerce
+  on_missing_city_code: warn  # fail|warn|use_fallback
+  max_errors: 100             # остановка после N ошибок
+
+performance:
+  batch_size: 1000      # обработка порциями
+  parallel: false       # параллельная обработка
 
 logging:
-  level: "info"
+  level: info       # error|warn|info|debug|trace
+  file: "log.txt"
+  console: true
+  color: true
+  timestamp: true
