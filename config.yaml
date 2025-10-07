@@ -29,7 +29,7 @@ transforms:
 
 filters:
   skip_negative_rows:
-    fields: ["total_weight", "total_packaging"]   # < - Явно, к каким полям применяем
+    fields: [ "total_weight", "total_packaging" ]   # < - Явно, к каким полям применяем
     enabled: true
   min_weight: 0
   required:
@@ -37,7 +37,7 @@ filters:
     - order_id
 
 grouping:
-  keys: [client_license_number, order_id]
+  keys: [ client_license_number, order_id ]
   date_aggregate: "min"
   aggregates:
     total_weight_kg: "sum(total_weight)"
