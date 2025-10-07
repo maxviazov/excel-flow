@@ -1,8 +1,9 @@
 source:
   file: "משקל.xlsx"
-  sheet: "Sheet1"            # при необходимости: регэксп или другой лист
+  sheet: "Sheet1"
   header_row: 1
   encoding: "auto"
+  validate_exists: true
 
 columns:
   client_id: "קוד כרטיס"
@@ -14,12 +15,14 @@ columns:
   date: "תאריך אסמכתא"
   total_weight: "סה'כ משקל"
   total_packaging: "סה'כ אריזות"
-  city: "יישוב"
+  district_ru: "מחוז"
 
 types:
-  date: "date"
-  total_weight: "number"
-  total_packaging: "number"
+  date: date
+  total_weight: number
+  total_packaging: number
+
+date_format: "02/01/06"   # день/месяц/год в формате Go time
 
 transforms:
   decimal_separator: "."
