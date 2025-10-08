@@ -1,9 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"log"
+
+	"github.com/maxviazov/excel-flow/internal/app"
 )
 
 func main() {
-	fmt.Println("Hello, Excel Flow!")
+	if err := app.Run(); err != nil {
+		log.Fatal("Application failed:", err)
+	}
 }
