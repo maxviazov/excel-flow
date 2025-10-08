@@ -24,6 +24,6 @@ type DatabaseConfig struct {
 
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
-	Logger   LoggerConfig   `mapstructure:"logger"`
+	Logger   LoggerConfig   `mapstructure:"logging"`
 	Database DatabaseConfig `mapstructure:"database"`
 }

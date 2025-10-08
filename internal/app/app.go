@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"os"
 
 	"github.com/rs/zerolog"
 
 	"github.com/maxviazov/excel-flow/internal/config"
+	"github.com/maxviazov/excel-flow/internal/log"
 )
 
 type Pipeline interface {
@@ -26,7 +26,11 @@ func Run() error {
 		return err
 	}
 
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	logger, err := log.New(cfg.Logger)
+	if err != nil {
+		return err
+	}
+	logger.Info().Msg("Logger initialized")
 	pipeline := &mockPipeline{}
 
 	logger.Info().Msg("🚀 Starting Excel-Flow")
