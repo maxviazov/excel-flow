@@ -1,0 +1,18 @@
+# SQLite с официальными кодами МОЗ и алиасами
+sqlite:
+  dsn: "configs/dictionaries/city.db"
+
+schema:
+  city_codes:
+    table: "city_codes"
+    key_column: "city_heb"
+    code_column: "city_code"
+  city_aliases:
+    table: "city_aliases"
+    alias_column: "alias_heb"
+    target_column: "target_heb"
+
+lookup:
+  normalize_nfc: true
+  trim: true
+  # поиск: сначала прямой матч в city_codes, потом alias → target → code

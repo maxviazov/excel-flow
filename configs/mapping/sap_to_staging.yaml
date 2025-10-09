@@ -1,0 +1,14 @@
+# соответствия колонок SAP → внутренняя схема (STAGING)
+columns:
+  client_id: "קוד כרטיס"
+  client_license_number: "מספר עוסק מורשה"
+  client_name_on_hebrew: "שם לועזי"
+  client_name_on_russian: "שם כרטיס"
+  client_address: "כתובת"
+  order_id: "אסמכתת בסיס"
+  date: "תאריך אסמכתא"
+  total_weight: "סה'כ משקל"
+  total_packaging: "סה'כ אריזות"
+  district_ru: "מחוז"
+
+# если в SAP появятся новые поля — добавляй тут (на финал это не влияет, финал берёт из derive)
