@@ -1,7 +1,7 @@
 version: 1
 
 source:
-  file: "input/משקל.xlsx"
+  file: "testdata/משקל.xlsx"
   sheet: "Sheet1"
   header_row: 1
   encoding: "auto"
