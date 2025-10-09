@@ -15,13 +15,13 @@ type Pipeline interface {
 
 type mockPipeline struct{}
 
-func (m *mockPipeline) Run(ctx context.Context, cfg *config.Config, log zerolog.Logger) error {
+func (m *mockPipeline) Run(_ context.Context, _ *config.Config, log zerolog.Logger) error {
 	log.Info().Msg("Mock pipeline executed")
 	return nil
 }
 
 func Run() error {
-	cfg, err := config.LoadConfig("configs/config.yaml")
+	cfg, err := config.LoadConfig("configs/pipeline.yaml")
 	if err != nil {
 		return err
 	}

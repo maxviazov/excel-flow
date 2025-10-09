@@ -1,0 +1,6 @@
+on_missing_column: fail
+on_invalid_type: warn
+on_missing_city_code: warn|skip
+on_bad_date: warn|drop
+
+# уровни по умолчанию: info|warn|error|fatal (реализуешь в коде пайплайна)
