@@ -1,0 +1,13 @@
+# SQLite с логистической информацией по накладной (DN)
+sqlite:
+  dsn: "configs/dictionaries/logistics.db"
+
+schema:
+  delivery_logistics:
+    table: "delivery_logistics"
+    key_column: "delivery_note_number"
+    columns:
+      vehicle_number: "vehicle_number"
+      driver_name: "driver_name"
+      driver_phone: "driver_phone"
+      daily_round: "daily_round"   # при желании можно задействовать и здесь

@@ -1,0 +1,115 @@
+# как получаем итоговые поля STAGING (константы, нормализация, lookup из SQLite, вычисления)
+
+presets:
+  supplier_name: "דולינה גרופ בע\"מ"   # 1
+  supplier_tax_id: "511777856"          # 2
+  moh_registration: "P1908"             # 3
+  client_type: "קמעונאי"                # 9
+  daily_round: 1                         # 28
+  branch_number: ""                      # 13 (по умолчанию пусто)
+  cancel_code: ""                        # 29 (обычно пусто)
+  distributed_via_vs: ""                 # 30 (обычно пусто)
+
+derive:
+  # из SAP → нормализуем
+  client_name:
+    type: normalize_text
+    source: client_name_on_hebrew
+    unicode_nfc: true
+    trim: true
+
+  address:
+    type: normalize_text
+    source: client_address
+    unicode_nfc: true
+    trim: true
+
+  client_license_number:
+    type: normalize_text
+    source: client_license_number
+    unicode_nfc: true
+    trim: true
+
+  delivery_note_number:
+    type: normalize_text
+    source: order_id
+    unicode_nfc: true
+    trim: true
+
+  shipment_date:
+    type: parse_date
+    source: date
+    prefer_output: "2006-01-02"     # финальная запись ISO (YYYY-MM-DD)
+    formats: [ "02/01/06", "02/01/2006", "2006-01-02", "excel_serial" ]
+
+  weight_rte_products:
+    type: parse_number
+    source: total_weight
+    multiplier: 1.0
+    decimals: 3
+
+  total_cartons:
+    type: parse_number
+    source: total_packaging
+    multiplier: 1.0
+    decimals: 3
+
+  total_weight:
+    type: passthrough
+    source: weight_rte_products
+
+  # категории, которых нет в SAP — нули
+  weight_livestock_raw: { type: const_number, value: 0 }
+  weight_livestock_import_frozen: { type: const_number, value: 0 }
+  weight_livestock_processed: { type: const_number, value: 0 }
+  weight_poultry_raw: { type: const_number, value: 0 }
+  weight_poultry_processed: { type: const_number, value: 0 }
+  weight_fish_local_raw: { type: const_number, value: 0 }
+  weight_fish_import: { type: const_number, value: 0 }
+  weight_fish_processed: { type: const_number, value: 0 }
+  weight_other_a: { type: const_number, value: 0 }
+  weight_other_b: { type: const_number, value: 0 }
+
+  # city → code (через SQLite)
+  city_raw:
+    type: regex_extract
+    source: address
+    pattern: "^([^,]+)"
+    group: 1
+  city_heb:
+    type: normalize_city_name
+    prefer: city_raw
+    fallback: district_ru
+    use_sqlite_aliases: true          # смотреть configs/dictionaries/city_codes.source.yaml
+  city_code:
+    type: sqlite_lookup
+    dsn: "configs/dictionaries/city.db"
+    table: "city_codes"
+    key_column: "city_heb"
+    val_column: "city_code"
+    input: "city_heb"
+
+  # логистика из SQLite по номеру накладной
+  vehicle_number:
+    type: sqlite_lookup
+    dsn: "configs/dictionaries/logistics.db"
+    table: "delivery_logistics"
+    key_column: "delivery_note_number"
+    val_column: "vehicle_number"
+    input: "delivery_note_number"
+
+  driver_name:
+    type: sqlite_lookup
+    dsn: "configs/dictionaries/logistics.db"
+    table: "delivery_logistics"
+    key_column: "delivery_note_number"
+    val_column: "driver_name"
+    input: "delivery_note_number"
+
+  driver_phone:
+    type: sqlite_lookup
+    dsn: "configs/dictionaries/logistics.db"
+    table: "delivery_logistics"
+    key_column: "delivery_note_number"
+    val_column: "driver_phone"
+    input: "delivery_note_number"
