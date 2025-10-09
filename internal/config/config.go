@@ -38,6 +38,22 @@ type DatabaseConfig struct {
 	Name string `mapstructure:"name"`
 }
 
+// SourceConfig holds source file configuration.
+type SourceConfig struct {
+	// File is the path to the input Excel file.
+	File string `mapstructure:"file"`
+	// Sheet is the name of the Excel sheet to read.
+	Sheet string `mapstructure:"sheet"`
+	// HeaderRow is the row number containing headers (1-based).
+	HeaderRow int `mapstructure:"header_row"`
+}
+
+// OutputConfig holds output configuration.
+type OutputConfig struct {
+	// StagingFile is the path to the staging output file.
+	StagingFile string `mapstructure:"staging_file"`
+}
+
 // Config is the root configuration struct that holds all other configuration structs.
 type Config struct {
 	// App holds the application configuration.
@@ -46,4 +62,8 @@ type Config struct {
 	Logger LoggerConfig `mapstructure:"logging"`
 	// Database holds the database configuration.
 	Database DatabaseConfig `mapstructure:"database"`
+	// Source holds the source file configuration.
+	Source SourceConfig `mapstructure:"source"`
+	// Output holds the output configuration.
+	Output OutputConfig `mapstructure:"output"`
 }

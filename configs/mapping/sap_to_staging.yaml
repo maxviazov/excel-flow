@@ -3,7 +3,7 @@ columns:
   client_id: "קוד כרטיס"
   client_license_number: "מספר עוסק מורשה"
   client_name_on_hebrew: "שם לועזי"
-  client_name_on_russian: "שם כרטיס"
+  #  client_name_on_russian: "שם כרטיס"
   client_address: "כתובת"
   order_id: "אסמכתת בסיס"
   date: "תאריך אסמכתא"

@@ -1,0 +1,137 @@
+package pipelines
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/maxviazov/excel-flow/internal/mapping"
+)
+
+// ProcessSAPData processes raw Excel data and returns grouped results
+func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
+	groups := make(map[GroupKey]*GroupVal)
+
+	// Apply SAP to internal mapping
+	mappingRules := mapping.MapSAPtoInternal()
+	mappedData := mapping.ApplySelect(data, mappingRules)
+
+	for _, row := range mappedData {
+		// Extract and validate required fields
+		clientLicense := strings.TrimSpace(row["client_license_number"])
+		if clientLicense == "" {
+			continue
+		}
+
+		orderID := strings.TrimSpace(row["order_id"])
+		if orderID == "" {
+			continue
+		}
+
+		// Дата не используется для группировки
+
+		// Parse weight - convert from tons to kg
+		weightStr := normalizeNumber(row["total_weight_raw"])
+		weightTons, err := strconv.ParseFloat(weightStr, 64)
+		if err != nil {
+			weightTons = 0
+		}
+		weight := weightTons / 1000 // конверсия грамм в кг
+
+		// Parse and normalize packages
+		packagesStr := normalizeNumber(row["total_packaging_raw"])
+		packages, err := strconv.ParseFloat(packagesStr, 64)
+		if err != nil {
+			packages = 0
+		}
+
+		// Get client info - use Hebrew name for client
+		clientName := strings.TrimSpace(row["client_name_he"])
+		address := strings.TrimSpace(row["client_address"])
+
+		// Skip rows where weight <= 0 or missing required fields
+		if weight <= 0 || clientName == "" {
+			continue
+		}
+
+		// Create group key - по клиенту И номеру документа
+		key := GroupKey{
+			ClientLicense: clientLicense,
+			OrderID:       orderID,     // группируем по номеру документа
+			Date:          time.Time{}, // не группируем по дате
+		}
+
+		// Aggregate values
+		if existing, ok := groups[key]; ok {
+			existing.TotalWeight += weight
+			existing.TotalPackages += packages
+			existing.Count++
+			// Update client info if empty
+			if existing.ClientName == "" && clientName != "" {
+				existing.ClientName = clientName
+			}
+			if existing.Address == "" && address != "" {
+				existing.Address = address
+			}
+			// Добавляем номер документа в список
+			if orderID != "" {
+				// Проверяем что номер еще не добавлен
+				found := false
+				for _, existingOrderID := range existing.OrderIDs {
+					if existingOrderID == orderID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					existing.OrderIDs = append(existing.OrderIDs, orderID)
+				}
+			}
+		} else {
+			orderIDs := []string{}
+			if orderID != "" {
+				orderIDs = append(orderIDs, orderID)
+			}
+			groups[key] = &GroupVal{
+				TotalWeight:   weight,
+				TotalPackages: packages,
+				Count:         1,
+				ClientName:    clientName,
+				Address:       address,
+				OrderIDs:      orderIDs,
+			}
+		}
+	}
+
+	if len(groups) == 0 {
+		return nil, fmt.Errorf("no valid data found in %d rows", len(data))
+	}
+
+	return groups, nil
+}
+
+// parseDate tries multiple date formats
+func parseDate(dateStr string) (time.Time, error) {
+	formats := []string{
+		"2006-01-02",
+		"02/01/06",
+		"02/01/2006",
+		"2006/01/02",
+	}
+
+	for _, format := range formats {
+		if date, err := time.Parse(format, dateStr); err == nil {
+			return date, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
+}
+
+// normalizeNumber replaces comma with dot and trims spaces
+func normalizeNumber(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, ",", ".")
+	return s
+}
