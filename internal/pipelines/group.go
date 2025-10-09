@@ -19,6 +19,8 @@ type GroupVal struct {
 	ClientName    string
 	Address       string
 	OrderIDs      []string // список всех номеров документов
+	CityName      string   // название города
+	CityCode      string   // код города
 }
 
 // BuildGroups: кидаем строки с пустыми ключами; остальное агрегируем.

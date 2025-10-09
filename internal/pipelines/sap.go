@@ -1,10 +1,13 @@
 package pipelines
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/maxviazov/excel-flow/internal/mapping"
 )
@@ -48,7 +51,11 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 
 		// Get client info - use Hebrew name for client
 		clientName := strings.TrimSpace(row["client_name_he"])
-		address := strings.TrimSpace(row["client_address"])
+		fullAddress := strings.TrimSpace(row["client_address"])
+
+		// Извлекаем город из адреса (до первой запятой)
+		cityName, address := extractCityFromAddress(fullAddress)
+		cityCode := lookupCityCode(cityName)
 
 		// Skip rows where weight <= 0 or missing required fields
 		if weight <= 0 || clientName == "" {
@@ -73,6 +80,12 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 			}
 			if existing.Address == "" && address != "" {
 				existing.Address = address
+			}
+			if existing.CityName == "" && cityName != "" {
+				existing.CityName = cityName
+			}
+			if existing.CityCode == "" && cityCode != "" {
+				existing.CityCode = cityCode
 			}
 			// Добавляем номер документа в список
 			if orderID != "" {
@@ -100,6 +113,8 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 				ClientName:    clientName,
 				Address:       address,
 				OrderIDs:      orderIDs,
+				CityName:      cityName,
+				CityCode:      cityCode,
 			}
 		}
 	}
@@ -134,4 +149,43 @@ func normalizeNumber(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.ReplaceAll(s, ",", ".")
 	return s
+}
+
+// extractCityFromAddress извлекает город до первой запятой и оставляет адрес
+func extractCityFromAddress(fullAddress string) (city, address string) {
+	parts := strings.SplitN(fullAddress, ",", 2)
+	if len(parts) >= 2 {
+		city = strings.TrimSpace(parts[0])
+		address = strings.TrimSpace(parts[1])
+	} else {
+		// Если нет запятой, весь адрес считаем городом
+		city = strings.TrimSpace(fullAddress)
+		address = ""
+	}
+	return city, address
+}
+
+// lookupCityCode ищет код города в SQLite базе
+func lookupCityCode(cityName string) string {
+	cityName = strings.TrimSpace(cityName)
+	if cityName == "" {
+		return "9999" // код по умолчанию
+	}
+
+	// Открываем базу данных
+	db, err := sql.Open("sqlite3", "configs/dictionaries/city.db")
+	if err != nil {
+		return "9999" // ошибка подключения
+	}
+	defer db.Close()
+
+	// Ищем код города через view v_city_lookup
+	var cityCode string
+	query := "SELECT city_code FROM v_city_lookup WHERE key_heb = ? LIMIT 1"
+	err = db.QueryRow(query, cityName).Scan(&cityCode)
+	if err != nil {
+		return "9999" // город не найден
+	}
+
+	return cityCode
 }

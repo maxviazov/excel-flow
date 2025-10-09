@@ -95,7 +95,7 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) er
 		// 5-7: vehicle info - empty
 		setCellIfNotEmpty(8, v.ClientName)
 		setCellIfNotEmpty(9, "קמעונאי")
-		// 10: city code - empty
+		setCellIfNotEmpty(10, v.CityCode) // код города
 		setCellIfNotEmpty(11, v.Address)
 		setCellIfNotEmpty(12, k.ClientLicense)
 		// 13: branch number - empty
