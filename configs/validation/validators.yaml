@@ -1,0 +1,20 @@
+required:
+  - supplier_name
+  - supplier_tax_id
+  - shipment_date
+  - client_name
+  - client_license_number
+  - delivery_note_number
+  - address
+  - city_heb
+  - city_code
+  - total_weight
+
+rules:
+  - name: weight_positive
+    expr: "total_weight > 0"
+  - name: cartons_non_negative
+    expr: "total_cartons >= 0"
+  # если введёшь категории O..X — можно включить сверку AA == сумма O..X
+  # - name: aa_sum_check
+  #   expr: "abs(total_weight - (weight_livestock_raw + weight_livestock_import_frozen + weight_livestock_processed + weight_poultry_raw + weight_poultry_processed + weight_fish_local_raw + weight_fish_import + weight_fish_processed + weight_rte_products + weight_other_a + weight_other_b)) < 0.001"

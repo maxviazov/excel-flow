@@ -1,0 +1,34 @@
+# STAGING → официальный Excel МОЗ (A..AD)
+map:
+  "שם הספק": supplier_name
+  "ח\"פ ספק": supplier_tax_id
+  "מספר משרד הבריאות": moh_registration
+  "תאריך": shipment_date
+  "מס.רכב": vehicle_number
+  "שם הנהג": driver_name
+  "טלפון נהג": driver_phone
+  "לקוח": client_name
+  "סוג לקוח (קמעונאי,מפעל/מחסן)": client_type
+  "קוד עיר": city_code
+  "כתובת": address
+  "ח\"פ לקוח / מספר אישור משרד הבריאות": client_license_number
+  "מספר סניף הרשת": branch_number
+  "מספר תעודת משלוח": delivery_note_number
+
+  "בשר בהמות גולמי (משקל)": weight_livestock_raw
+  "בשר בהמות מיבוא קפוא (משקל)": weight_livestock_import_frozen
+  "בשר בהמות מעובד (משקל)": weight_livestock_processed
+  "עוף גולמי (עוף שחוט) (משקל)": weight_poultry_raw
+  "עוף מעובד (משקל)": weight_poultry_processed
+  "דגים גולמי (מקומי) (משקל)": weight_fish_local_raw
+  "דגים יבוא": weight_fish_import
+  "דגים מעובדים": weight_fish_processed
+  "מוצרים מוכנים לאכילה": weight_rte_products
+  "נוסף א": weight_other_a
+  "נוסף ב": weight_other_b
+
+  "סה\"כ קרטונים": total_cartons
+  "סה\"כ משקל": total_weight
+  "סבב יומי": daily_round
+  "קוד ביטול דיווח משלוח\n(למקרים בהם נדרש לבטל תעודת משלוח שדווחה ולא יצאה מהמפעל לשיווק": cancel_code
+  "משווק באמצעות": distributed_via_vs

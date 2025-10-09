@@ -1,0 +1,87 @@
+version: 1
+
+source:
+  file: "input/משקל.xlsx"
+  sheet: "Sheet1"
+  header_row: 1
+  encoding: "auto"
+  validate_exists: true
+
+includes:
+  mapping:
+    sap_to_staging: "configs/mapping/sap_to_staging.yaml"
+    staging_to_moh: "configs/mapping/staging_to_moh.yaml"
+  transforms: "configs/transforms/derive_rules.yaml"
+  validators: "configs/validation/validators.yaml"
+  policies: "configs/validation/policies.yaml"
+  dictionaries:
+    city_codes: "configs/dictionaries/city_codes.source.yaml"
+    logistics: "configs/dictionaries/logistics.source.yaml"
+
+types:
+  # базовые «подсказывающие» типы для нормализации
+  date: date
+  total_weight: number
+  total_packaging: number
+
+date_format: "02/01/06"     # для парсинга входных текстовых дат (dd/mm/yy); финальная запись — ISO
+
+transforms:
+  decimal_separator: "."
+  weight_multiplier: 1.0
+  trim_whitespace: true
+  unicode_nfc: true
+
+filters:
+  # Жёстко выбрасываем отрицательные/нулевые значения в критичных числах
+  skip_negative_rows:
+    enabled: true
+    fields: [ total_weight, total_packaging ]
+
+grouping:
+  # единица агрегирования: клиент + накладная + дата (и при наличии рейса)
+  keys:
+    - client_license_number
+    - order_id
+    - date
+    # - daily_round        # раскомментируй, если появится в SAP/логистике на этапе агрегации
+  aggregates:
+    total_weight_kg: "sum(total_weight)"
+    total_packages: "sum(total_packaging)"
+    lines_count: "count()"
+    date_agg: "min(date)"  # при условии, что в группе даты одинаковые
+
+city_extraction:
+  # высокоуровневые настройки — детализация в derive_rules.yaml и city_codes.source.yaml
+  from_address_field: client_address
+  address_pattern: "^([^,]+)"
+  normalize: true
+  case_sensitive: false
+  output_fields:
+    raw: city_raw
+    heb: city_heb
+    code: city_code
+
+output:
+  staging_file: "out/staging.xlsx"
+  moh:
+    out_dir: "out/moh/"
+    filename_pattern: "{shipment_date:YYYYMMDD}__{client_license_number}__{delivery_note_number}.xlsx"
+    # соответствия столбцов — в mapping/staging_to_moh.yaml
+
+error_handling:
+  on_missing_column: fail
+  on_invalid_type: warn
+  on_missing_city_code: warn|skip
+  max_errors: 100
+
+performance:
+  batch_size: 1000
+  parallel: false
+
+logging:
+  level: info
+  file: "logs/app.log"
+  console: true
+  color: true
+  timestamp: true
