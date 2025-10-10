@@ -20,6 +20,7 @@ type GroupVal struct {
 	Address       string
 	OrderIDs      []string // список всех номеров документов
 	CityName      string   // название города
+	CityNameHeb   string   // название города на иврите
 	CityCode      string   // код города
 }
 
