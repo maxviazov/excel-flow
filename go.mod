@@ -8,6 +8,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
 	github.com/xuri/excelize/v2 v2.9.1
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
