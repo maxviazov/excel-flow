@@ -1,6 +1,6 @@
 module github.com/maxviazov/excel-flow
 
-go 1.25.1
+go 1.25.2
 
 require (
 	github.com/go-playground/validator/v10 v10.28.0
