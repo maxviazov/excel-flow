@@ -20,7 +20,7 @@ func WriteStaging(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal
 	headers := []string{
 		"client_license_number", "order_id", "date",
 		"total_weight", "total_packages", "rows_count",
-		"client_name", "address", "city_name", "city_code",
+		"client_name", "address", "city_name", "city_name_heb", "city_code",
 	}
 	for i, h := range headers {
 		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
@@ -58,6 +58,7 @@ func WriteStaging(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal
 			v.ClientName,
 			v.Address,
 			v.CityName,
+			v.CityNameHeb,
 			v.CityCode,
 		}
 		for i, val := range values {
