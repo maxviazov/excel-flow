@@ -55,7 +55,7 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 
 		// Извлекаем город из адреса (до первой запятой)
 		cityName, address := extractCityFromAddress(fullAddress)
-		cityCode := lookupCityCode(cityName)
+		cityCode, cityNameHeb := lookupCityInfo(cityName)
 
 		// Skip rows where weight <= 0 or missing required fields
 		if weight <= 0 || clientName == "" {
@@ -83,6 +83,9 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 			}
 			if existing.CityName == "" && cityName != "" {
 				existing.CityName = cityName
+			}
+			if existing.CityNameHeb == "" && cityNameHeb != "" {
+				existing.CityNameHeb = cityNameHeb
 			}
 			if existing.CityCode == "" && cityCode != "" {
 				existing.CityCode = cityCode
@@ -114,6 +117,7 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 				Address:       address,
 				OrderIDs:      orderIDs,
 				CityName:      cityName,
+				CityNameHeb:   cityNameHeb,
 				CityCode:      cityCode,
 			}
 		}
@@ -165,27 +169,27 @@ func extractCityFromAddress(fullAddress string) (city, address string) {
 	return city, address
 }
 
-// lookupCityCode ищет код города в SQLite базе
-func lookupCityCode(cityName string) string {
+// lookupCityInfo ищет код города и название на иврите в SQLite базе
+func lookupCityInfo(cityName string) (code, hebName string) {
 	cityName = strings.TrimSpace(cityName)
 	if cityName == "" {
-		return "9999" // код по умолчанию
+		return "9999", "" // код по умолчанию
 	}
 
 	// Открываем базу данных
 	db, err := sql.Open("sqlite3", "configs/dictionaries/city.db")
 	if err != nil {
-		return "9999" // ошибка подключения
+		return "9999", cityName // ошибка подключения, возвращаем исходное название
 	}
 	defer db.Close()
 
-	// Ищем код города через view v_city_lookup
-	var cityCode string
-	query := "SELECT city_code FROM v_city_lookup WHERE key_heb = ? LIMIT 1"
-	err = db.QueryRow(query, cityName).Scan(&cityCode)
+	// Ищем код города и название на иврите через view v_city_lookup
+	var cityCode, cityHeb string
+	query := `SELECT city_code, canon_heb FROM v_city_lookup WHERE key_heb = ? LIMIT 1`
+	err = db.QueryRow(query, cityName).Scan(&cityCode, &cityHeb)
 	if err != nil {
-		return "9999" // город не найден
+		return "9999", cityName // город не найден, возвращаем исходное название
 	}
 
-	return cityCode
+	return cityCode, cityHeb
 }
