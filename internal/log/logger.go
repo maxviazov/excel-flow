@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/maxviazov/excel-flow/internal/config"
 )
@@ -40,11 +41,14 @@ func New(cfg config.LoggerConfig) (zerolog.Logger, error) {
 		if err := os.MkdirAll(filepath.Dir(cfg.File), 0755); err != nil {
 			return zerolog.Logger{}, fmt.Errorf("failed to create a log directory: %w", err)
 		}
-		file, err := os.OpenFile(cfg.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		if err != nil {
-			return zerolog.Logger{}, fmt.Errorf("failed to open log file %s: %w", cfg.File, err)
+		fileWriter := &lumberjack.Logger{
+			Filename:   cfg.File,
+			MaxSize:    10,
+			MaxBackups: 3,
+			MaxAge:     7,
+			Compress:   true,
 		}
-		writers = append(writers, file)
+		writers = append(writers, fileWriter)
 	}
 
 	var output io.Writer
