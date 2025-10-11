@@ -49,7 +49,7 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 			packages = 0
 		}
 
-		// Get client info - use Hebrew name for client
+		// Get client info - use ONLY Hebrew name
 		clientName := strings.TrimSpace(row["client_name_he"])
 		fullAddress := strings.TrimSpace(row["client_address"])
 
@@ -57,8 +57,8 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 		cityName, address := extractCityFromAddress(fullAddress)
 		cityCode, cityNameHeb := lookupCityInfo(cityName)
 
-		// Skip rows where weight <= 0 or missing required fields
-		if weight <= 0 || clientName == "" {
+		// Skip rows where weight <= 0
+		if weight <= 0 {
 			continue
 		}
 

@@ -16,6 +16,9 @@ func WriteStaging(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal
 	f.NewSheet(sh)
 	f.DeleteSheet("Sheet1")
 
+	// Set RTL (right-to-left) for Hebrew
+	f.SetSheetView(sh, 0, &excelize.ViewOptions{RightToLeft: boolPtr(true)})
+
 	// заголовок
 	headers := []string{
 		"client_license_number", "order_id", "date",

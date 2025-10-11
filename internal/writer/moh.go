@@ -16,6 +16,9 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) er
 	f.NewSheet(sh)
 	f.DeleteSheet("Sheet1")
 
+	// Set RTL (right-to-left) for Hebrew
+	f.SetSheetView(sh, 0, &excelize.ViewOptions{RightToLeft: boolPtr(true)})
+
 	// MOH headers in exact order
 	headers := []string{
 		"שם הספק",
@@ -111,4 +114,8 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) er
 	}
 
 	return f.SaveAs(path)
+}
+
+func boolPtr(b bool) *bool {
+	return &b
 }

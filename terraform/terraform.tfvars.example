@@ -1,0 +1,3 @@
+aws_region       = "us-east-1"
+domain_name      = "excel.viazov.dev"
+route53_zone_id  = "YOUR_ZONE_ID_HERE"
