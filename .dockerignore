@@ -25,7 +25,6 @@ docs/
 !README.md
 
 # Test files
-testdata/
 *_test.go
 
 # OS
