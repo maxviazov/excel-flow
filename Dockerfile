@@ -1,17 +1,20 @@
 FROM golang:1.25-alpine AS builder
 
+RUN apk add --no-cache gcc musl-dev sqlite-dev
+
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/server
+RUN CGO_ENABLED=1 GOOS=linux go build -o server ./cmd/server
 
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates sqlite-libs
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY --from=builder /app/web ./web
 COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/testdata ./testdata
 RUN mkdir -p uploads outputs
 
 EXPOSE 8080

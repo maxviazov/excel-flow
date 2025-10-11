@@ -3,11 +3,12 @@ variable "aws_region" {
 }
 
 variable "domain_name" {
-  description = "Domain name (e.g., excel.viazov.dev)"
+  description = "Domain name (e.g., viazov.dev)"
   type        = string
 }
 
 variable "route53_zone_id" {
-  description = "Route53 hosted zone ID for viazov.dev"
+  description = "Route53 hosted zone ID (optional, not used with Cloudflare)"
   type        = string
+  default     = ""
 }
