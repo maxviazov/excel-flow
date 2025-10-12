@@ -37,3 +37,4 @@ terraform/terraform.tfvars
 # Temp files
 *.tmp
 *.log
+!/final/
