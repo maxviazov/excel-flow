@@ -34,8 +34,23 @@ var (
 )
 
 func main() {
+	// Ensure writable directory for drivers DB
+	os.MkdirAll("/tmp/data", 0755)
+	
+	// Copy drivers.db to writable location if not exists
+	driverDBPath := "/tmp/data/drivers.db"
+	if _, err := os.Stat(driverDBPath); os.IsNotExist(err) {
+		if src, err := os.Open("configs/dictionaries/drivers.db"); err == nil {
+			defer src.Close()
+			if dst, err := os.Create(driverDBPath); err == nil {
+				defer dst.Close()
+				io.Copy(dst, src)
+			}
+		}
+	}
+	
 	cityService = admin.NewCityService("configs/dictionaries/city.db")
-	driverService = admin.NewDriverService("configs/dictionaries/drivers.db")
+	driverService = admin.NewDriverService(driverDBPath)
 
 	// Main app API
 	http.HandleFunc("/api/upload", handleUpload)
