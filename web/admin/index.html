@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול מאגרי מידע</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { margin-bottom: 30px; color: #333; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: white; border: none; cursor: pointer; border-radius: 5px; }
+        .tab.active { background: #007bff; color: white; }
+        .section { display: none; background: white; padding: 20px; border-radius: 5px; }
+        .section.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 150px; }
+        button { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .delete-btn { background: #dc3545; }
+        .delete-btn:hover { background: #c82333; }
+        .alias { color: #6c757d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ניהול מאגרי מידע</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('cities')">ערים</button>
+            <button class="tab" onclick="showTab('drivers')">נהגים</button>
+        </div>
+
+        <div id="cities" class="section active">
+            <h2>ניהול ערים</h2>
+            <div class="form">
+                <input type="text" id="cityCode" placeholder="קוד עיר">
+                <input type="text" id="cityNameHeb" placeholder="שם בעברית">
+                <input type="text" id="cityNameEng" placeholder="שם באנגלית">
+                <button onclick="addCity()">הוסף עיר</button>
+            </div>
+            <div class="form">
+                <input type="text" id="aliasHeb" placeholder="כינוי בעברית">
+                <input type="text" id="aliasCityCode" placeholder="קוד עיר">
+                <button onclick="addAlias()">הוסף כינוי</button>
+            </div>
+            <table id="citiesTable">
+                <thead>
+                    <tr>
+                        <th>קוד</th>
+                        <th>שם עברי</th>
+                        <th>שם אנגלי</th>
+                        <th>סוג</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="drivers" class="section">
+            <h2>ניהול נהגים</h2>
+            <div class="form">
+                <input type="text" id="driverName" placeholder="שם נהג">
+                <input type="text" id="driverPhone" placeholder="טלפון">
+                <button onclick="addDriver()">הוסף נהג</button>
+            </div>
+            <table id="driversTable">
+                <thead>
+                    <tr>
+                        <th>שם</th>
+                        <th>טלפון</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+            if (tab === 'cities') loadCities();
+            if (tab === 'drivers') loadDrivers();
+        }
+
+        async function loadCities() {
+            const res = await fetch('/api/cities');
+            const cities = await res.json();
+            const tbody = document.querySelector('#citiesTable tbody');
+            tbody.innerHTML = cities.map(c => `
+                <tr class="${c.is_alias ? 'alias' : ''}">
+                    <td>${c.code}</td>
+                    <td>${c.name_heb}</td>
+                    <td>${c.name_eng || '-'}</td>
+                    <td>${c.is_alias ? 'כינוי → ' + c.canon_code : 'עיר'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteCity('${c.code}', ${c.is_alias})">מחק</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function addCity() {
+            const code = document.getElementById('cityCode').value;
+            const nameHeb = document.getElementById('cityNameHeb').value;
+            const nameEng = document.getElementById('cityNameEng').value;
+            await fetch('/api/cities', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({code, name_heb: nameHeb, name_eng: nameEng})
+            });
+            document.getElementById('cityCode').value = '';
+            document.getElementById('cityNameHeb').value = '';
+            document.getElementById('cityNameEng').value = '';
+            loadCities();
+        }
+
+        async function addAlias() {
+            const aliasHeb = document.getElementById('aliasHeb').value;
+            const cityCode = document.getElementById('aliasCityCode').value;
+            await fetch('/api/cities/alias', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({alias_heb: aliasHeb, city_code: cityCode})
+            });
+            document.getElementById('aliasHeb').value = '';
+            document.getElementById('aliasCityCode').value = '';
+            loadCities();
+        }
+
+        async function deleteCity(code, isAlias) {
+            if (!confirm('האם למחוק?')) return;
+            const url = isAlias ? `/api/cities/alias?alias=${code}` : `/api/cities?code=${code}`;
+            await fetch(url, {method: 'DELETE'});
+            loadCities();
+        }
+
+        async function loadDrivers() {
+            const res = await fetch('/api/drivers');
+            const drivers = await res.json();
+            const tbody = document.querySelector('#driversTable tbody');
+            tbody.innerHTML = drivers.map(d => `
+                <tr>
+                    <td>${d.name}</td>
+                    <td>${d.phone || '-'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteDriver(${d.id})">מחק</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function addDriver() {
+            const name = document.getElementById('driverName').value;
+            const phone = document.getElementById('driverPhone').value;
+            await fetch('/api/drivers', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, phone})
+            });
+            document.getElementById('driverName').value = '';
+            document.getElementById('driverPhone').value = '';
+            loadDrivers();
+        }
+
+        async function deleteDriver(id) {
+            if (!confirm('האם למחוק?')) return;
+            await fetch(`/api/drivers?id=${id}`, {method: 'DELETE'});
+            loadDrivers();
+        }
+
+        loadCities();
+    </script>
+</body>
+</html>
