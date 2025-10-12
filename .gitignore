@@ -4,8 +4,8 @@ bin/
 *.dll
 *.so
 *.dylib
-flow
-server
+/flow
+/server
 
 # Test binary
 *.test
