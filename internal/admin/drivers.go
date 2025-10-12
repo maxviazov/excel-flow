@@ -7,9 +7,11 @@ import (
 )
 
 type Driver struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Phone     string `json:"phone"`
+	CarNumber string `json:"car_number"`
+	Cities    string `json:"cities"`
 }
 
 type DriverService struct {
@@ -31,7 +33,9 @@ func (s *DriverService) initDB() error {
 		CREATE TABLE IF NOT EXISTS drivers (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
-			phone TEXT
+			phone TEXT,
+			car_number TEXT,
+			cities TEXT
 		)
 	`)
 	return err
@@ -48,7 +52,7 @@ func (s *DriverService) ListDrivers() ([]Driver, error) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT id, name, phone FROM drivers ORDER BY name`)
+	rows, err := db.Query(`SELECT id, name, phone, COALESCE(car_number, ''), COALESCE(cities, '') FROM drivers ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func (s *DriverService) ListDrivers() ([]Driver, error) {
 	var drivers []Driver
 	for rows.Next() {
 		var d Driver
-		if err := rows.Scan(&d.ID, &d.Name, &d.Phone); err != nil {
+		if err := rows.Scan(&d.ID, &d.Name, &d.Phone, &d.CarNumber, &d.Cities); err != nil {
 			return nil, err
 		}
 		drivers = append(drivers, d)
@@ -65,7 +69,7 @@ func (s *DriverService) ListDrivers() ([]Driver, error) {
 	return drivers, nil
 }
 
-func (s *DriverService) AddDriver(name, phone string) error {
+func (s *DriverService) AddDriver(name, phone, carNumber, cities string) error {
 	if err := s.initDB(); err != nil {
 		return err
 	}
@@ -76,18 +80,18 @@ func (s *DriverService) AddDriver(name, phone string) error {
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`INSERT INTO drivers (name, phone) VALUES (?, ?)`, name, phone)
+	_, err = db.Exec(`INSERT INTO drivers (name, phone, car_number, cities) VALUES (?, ?, ?, ?)`, name, phone, carNumber, cities)
 	return err
 }
 
-func (s *DriverService) UpdateDriver(id int, name, phone string) error {
+func (s *DriverService) UpdateDriver(id int, name, phone, carNumber, cities string) error {
 	db, err := sql.Open("sqlite3", s.dbPath)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`UPDATE drivers SET name = ?, phone = ? WHERE id = ?`, name, phone, id)
+	_, err = db.Exec(`UPDATE drivers SET name = ?, phone = ?, car_number = ?, cities = ? WHERE id = ?`, name, phone, carNumber, cities, id)
 	return err
 }
 
