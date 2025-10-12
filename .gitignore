@@ -38,3 +38,27 @@ terraform/terraform.tfvars
 *.tmp
 *.log
 !/final/
+
+# Temporary files
+*.log
+*.tmp
+*~
+.DS_Store
+
+# SQLite temp files
+*.db-shm
+*.db-wal
+
+# Upload/output directories
+uploads/*
+outputs/*
+!uploads/.gitkeep
+!outputs/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Scripts (temporary)
+scripts/
