@@ -20,12 +20,12 @@ type ProcessRequest struct {
 }
 
 type ProcessResponse struct {
-	Success      bool   `json:"success"`
-	Message      string `json:"message"`
-	InputRows    int    `json:"inputRows"`
-	OutputRows   int    `json:"outputRows"`
-	OutputFile   string `json:"outputFile"`
-	ProcessTime  string `json:"processTime"`
+	Success     bool   `json:"success"`
+	Message     string `json:"message"`
+	InputRows   int    `json:"inputRows"`
+	OutputRows  int    `json:"outputRows"`
+	OutputFile  string `json:"outputFile"`
+	ProcessTime string `json:"processTime"`
 }
 
 var (
@@ -36,7 +36,7 @@ var (
 func main() {
 	// Ensure writable directory for drivers DB
 	os.MkdirAll("/tmp/data", 0755)
-	
+
 	// Copy drivers.db to writable location if not exists
 	driverDBPath := "/tmp/data/drivers.db"
 	if _, err := os.Stat(driverDBPath); os.IsNotExist(err) {
@@ -48,7 +48,7 @@ func main() {
 			}
 		}
 	}
-	
+
 	cityService = admin.NewCityService("configs/dictionaries/city.db")
 	driverService = admin.NewDriverService(driverDBPath)
 
@@ -56,7 +56,7 @@ func main() {
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
-	
+
 	// Admin panel API
 	http.HandleFunc("/api/admin/cities", handleCities)
 	http.HandleFunc("/api/admin/cities/alias", handleCityAlias)
@@ -64,10 +64,10 @@ func main() {
 	http.HandleFunc("/api/admin/drivers", handleDrivers)
 	http.HandleFunc("/api/admin/drivers/import", handleDriversImport)
 	http.HandleFunc("/api/admin/drivers/template", handleDriversTemplate)
-	
+
 	// Static files
-	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServer(http.Dir("./web/admin"))))
-	http.Handle("/", http.FileServer(http.Dir("./web")))
+	http.Handle("/admin/", noCacheMiddleware(http.StripPrefix("/admin/", http.FileServer(http.Dir("./web/admin")))))
+	http.Handle("/", noCacheMiddleware(http.FileServer(http.Dir("./web"))))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -79,16 +79,29 @@ func main() {
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			next.ServeHTTP(w, r)
+		},
+	)
+}
+
+func noCacheMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Expires", "0")
+			next.ServeHTTP(w, r)
+		},
+	)
 }
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
@@ -108,19 +121,27 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
 	filePath := filepath.Join("uploads", filename)
 
+	log.Printf("Uploading file: %s -> %s", header.Filename, filePath)
+
 	dst, err := os.Create(filePath)
 	if err != nil {
+		log.Printf("Failed to create file: %v", err)
 		respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
 		return
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
+		log.Printf("Failed to copy file: %v", err)
 		respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to save file"})
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{"filename": filename, "path": filePath, "fullPath": filepath.Join("./uploads", filename)})
+	log.Printf("File uploaded successfully: %s", filePath)
+	respondJSON(
+		w, http.StatusOK,
+		map[string]string{"filename": filename, "path": filePath, "fullPath": filepath.Join("./uploads", filename)},
+	)
 }
 
 func handleProcess(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +156,8 @@ func handleProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("Processing file: %s", req.InputFile)
+
 	start := time.Now()
 
 	os.MkdirAll("./outputs", 0755)
@@ -143,21 +166,25 @@ func handleProcess(w http.ResponseWriter, r *http.Request) {
 
 	inputRows, outputRows, err := app.ProcessFile(req.InputFile, outputPath)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, ProcessResponse{
-			Success: false,
-			Message: fmt.Sprintf("Processing failed: %v", err),
-		})
+		respondJSON(
+			w, http.StatusInternalServerError, ProcessResponse{
+				Success: false,
+				Message: fmt.Sprintf("Processing failed: %v", err),
+			},
+		)
 		return
 	}
 
-	respondJSON(w, http.StatusOK, ProcessResponse{
-		Success:     true,
-		Message:     "File processed successfully",
-		InputRows:   inputRows,
-		OutputRows:  outputRows,
-		OutputFile:  filename,
-		ProcessTime: time.Since(start).String(),
-	})
+	respondJSON(
+		w, http.StatusOK, ProcessResponse{
+			Success:     true,
+			Message:     "File processed successfully",
+			InputRows:   inputRows,
+			OutputRows:  outputRows,
+			OutputFile:  filename,
+			ProcessTime: time.Since(start).String(),
+		},
+	)
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {
@@ -179,5 +206,3 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
 }
-
-
