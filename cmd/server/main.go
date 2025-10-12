@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/maxviazov/excel-flow/internal/admin"
 	"github.com/maxviazov/excel-flow/internal/app"
 )
 
@@ -27,14 +28,27 @@ type ProcessResponse struct {
 	ProcessTime  string `json:"processTime"`
 }
 
+var (
+	cityService   *admin.CityService
+	driverService *admin.DriverService
+)
+
 func main() {
+	cityService = admin.NewCityService("configs/dictionaries/city.db")
+	driverService = admin.NewDriverService("configs/dictionaries/drivers.db")
+
 	// Main app API
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
 	
 	// Admin panel API
-	setupAdminRoutes()
+	http.HandleFunc("/api/admin/cities", handleCities)
+	http.HandleFunc("/api/admin/cities/alias", handleCityAlias)
+	http.HandleFunc("/api/admin/cities/import", handleCitiesImport)
+	http.HandleFunc("/api/admin/drivers", handleDrivers)
+	http.HandleFunc("/api/admin/drivers/import", handleDriversImport)
+	http.HandleFunc("/api/admin/drivers/template", handleDriversTemplate)
 	
 	// Static files
 	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServer(http.Dir("./web/admin"))))
@@ -151,7 +165,4 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func setupAdminRoutes() {
-	// Placeholder for admin routes - will be implemented in admin package
-	// For now, admin panel runs on separate port 8081
-}
+
