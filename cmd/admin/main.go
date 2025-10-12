@@ -20,7 +20,10 @@ func main() {
 
 	http.HandleFunc("/api/cities", handleCities)
 	http.HandleFunc("/api/cities/alias", handleCityAlias)
+	http.HandleFunc("/api/cities/import", handleCitiesImport)
 	http.HandleFunc("/api/drivers", handleDrivers)
+	http.HandleFunc("/api/drivers/import", handleDriversImport)
+	http.HandleFunc("/api/drivers/template", handleDriversTemplate)
 	http.Handle("/", http.FileServer(http.Dir("web/admin")))
 
 	log.Println("Admin panel running on http://localhost:8081")
@@ -108,14 +111,16 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 		var req struct {
-			Name  string `json:"name"`
-			Phone string `json:"phone"`
+			Name      string `json:"name"`
+			Phone     string `json:"phone"`
+			CarNumber string `json:"car_number"`
+			Cities    string `json:"cities"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := driverService.AddDriver(req.Name, req.Phone); err != nil {
+		if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -123,15 +128,17 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT":
 		var req struct {
-			ID    int    `json:"id"`
-			Name  string `json:"name"`
-			Phone string `json:"phone"`
+			ID        int    `json:"id"`
+			Name      string `json:"name"`
+			Phone     string `json:"phone"`
+			CarNumber string `json:"car_number"`
+			Cities    string `json:"cities"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone); err != nil {
+		if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
