@@ -1,0 +1,7 @@
+# SQLFluff configuration for SQLite
+[sqlfluff]
+dialect = sqlite
+
+[sqlfluff:rules]
+# Ignore warnings about unknown tables (they are created by migrations)
+L029.ignore_words = v_city_lookup,city_codes,city_aliases

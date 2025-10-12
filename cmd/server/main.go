@@ -68,9 +68,9 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	os.MkdirAll("./uploads", 0755)
+	os.MkdirAll("uploads", 0755)
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
-	filePath := filepath.Join("./uploads", filename)
+	filePath := filepath.Join("uploads", filename)
 
 	dst, err := os.Create(filePath)
 	if err != nil {
@@ -84,7 +84,7 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{"filename": filename, "path": filePath})
+	respondJSON(w, http.StatusOK, map[string]string{"filename": filename, "path": filePath, "fullPath": filepath.Join("./uploads", filename)})
 }
 
 func handleProcess(w http.ResponseWriter, r *http.Request) {
