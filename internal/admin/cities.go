@@ -31,12 +31,13 @@ func (s *CityService) ListCities() ([]City, error) {
 	defer db.Close()
 
 	rows, err := db.Query(`
-		SELECT city_code, canon_heb, canon_eng, 0 as is_alias, '' as canon_code
+		SELECT city_code, city_heb, '', 0 as is_alias, '' as canon_code
 		FROM city_codes
 		UNION ALL
-		SELECT alias_heb, alias_heb, '', 1, city_code
-		FROM city_aliases
-		ORDER BY canon_heb
+		SELECT c.city_code, a.alias_heb, '', 1, c.city_code
+		FROM city_aliases a
+		JOIN city_codes c ON c.city_heb = a.target_heb
+		ORDER BY city_heb
 	`)
 	if err != nil {
 		return nil, err
@@ -61,8 +62,8 @@ func (s *CityService) AddCity(code, nameHeb, nameEng string) error {
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`INSERT INTO city_codes (city_code, canon_heb, canon_eng) VALUES (?, ?, ?)`,
-		code, nameHeb, nameEng)
+	_, err = db.Exec(`INSERT INTO city_codes (city_code, city_heb) VALUES (?, ?)`,
+		code, nameHeb)
 	return err
 }
 
@@ -73,16 +74,16 @@ func (s *CityService) AddAlias(aliasHeb, cityCode string) error {
 	}
 	defer db.Close()
 
-	var exists int
-	err = db.QueryRow(`SELECT COUNT(*) FROM city_codes WHERE city_code = ?`, cityCode).Scan(&exists)
+	var targetHeb string
+	err = db.QueryRow(`SELECT city_heb FROM city_codes WHERE city_code = ?`, cityCode).Scan(&targetHeb)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("city code %s not found", cityCode)
+		}
 		return err
 	}
-	if exists == 0 {
-		return fmt.Errorf("city code %s not found", cityCode)
-	}
 
-	_, err = db.Exec(`INSERT INTO city_aliases (alias_heb, city_code) VALUES (?, ?)`, aliasHeb, cityCode)
+	_, err = db.Exec(`INSERT INTO city_aliases (alias_heb, target_heb) VALUES (?, ?)`, aliasHeb, targetHeb)
 	return err
 }
 

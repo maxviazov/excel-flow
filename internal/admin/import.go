@@ -57,15 +57,15 @@ func (s *CityService) ImportFromExcel(filePath string) (*ImportResult, error) {
 		}
 
 		if exists > 0 {
-			_, err = db.Exec(`UPDATE city_codes SET canon_heb = ?, canon_eng = ? WHERE city_code = ?`,
-				nameHeb, nameEng, code)
+			_, err = db.Exec(`UPDATE city_codes SET city_heb = ? WHERE city_code = ?`,
+				nameHeb, code)
 			if err != nil {
 				return nil, err
 			}
 			result.Updated++
 		} else {
-			_, err = db.Exec(`INSERT INTO city_codes (city_code, canon_heb, canon_eng) VALUES (?, ?, ?)`,
-				code, nameHeb, nameEng)
+			_, err = db.Exec(`INSERT INTO city_codes (city_code, city_heb) VALUES (?, ?)`,
+				code, nameHeb)
 			if err != nil {
 				return nil, err
 			}
