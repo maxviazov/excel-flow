@@ -54,8 +54,10 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 		fullAddress := strings.TrimSpace(row["client_address"])
 
 		// Извлекаем город из адреса (до первой запятой)
-		cityName, address := extractCityFromAddress(fullAddress)
+		cityName, streetAddress := extractCityFromAddress(fullAddress)
 		cityCode, cityNameHeb := lookupCityInfo(cityName)
+		// В колонку address записываем только улицу, город указывается кодом
+		address := streetAddress
 
 		// Skip rows where weight <= 0
 		if weight <= 0 {
@@ -184,8 +186,9 @@ func lookupCityInfo(cityName string) (code, hebName string) {
 	defer db.Close()
 
 	// Ищем код города и название на иврите через view v_city_lookup
+	// Приоритет: сначала не-алиасы (is_alias=0), потом по алфавиту кода
 	var cityCode, cityHeb string
-	query := `SELECT city_code, canon_heb FROM v_city_lookup WHERE key_heb = ? LIMIT 1`
+	query := `SELECT city_code, canon_heb FROM v_city_lookup WHERE key_heb = ? ORDER BY is_alias ASC, city_code ASC LIMIT 1`
 	err = db.QueryRow(query, cityName).Scan(&cityCode, &cityHeb)
 	if err != nil {
 		return "9999", cityName // город не найден, возвращаем исходное название
