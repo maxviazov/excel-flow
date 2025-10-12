@@ -106,7 +106,7 @@
         }
 
         async function loadCities() {
-            const res = await fetch('/api/cities');
+            const res = await fetch('/api/admin/cities');
             const cities = await res.json();
             const tbody = document.querySelector('#citiesTable tbody');
             tbody.innerHTML = cities.map(c => `
@@ -126,7 +126,7 @@
             const code = document.getElementById('cityCode').value;
             const nameHeb = document.getElementById('cityNameHeb').value;
             const nameEng = document.getElementById('cityNameEng').value;
-            await fetch('/api/cities', {
+            await fetch('/api/admin/cities', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({code, name_heb: nameHeb, name_eng: nameEng})
@@ -140,7 +140,7 @@
         async function addAlias() {
             const aliasHeb = document.getElementById('aliasHeb').value;
             const cityCode = document.getElementById('aliasCityCode').value;
-            await fetch('/api/cities/alias', {
+            await fetch('/api/admin/cities/alias', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({alias_heb: aliasHeb, city_code: cityCode})
@@ -152,13 +152,13 @@
 
         async function deleteCity(code, isAlias) {
             if (!confirm('האם למחוק?')) return;
-            const url = isAlias ? `/api/cities/alias?alias=${code}` : `/api/cities?code=${code}`;
+            const url = isAlias ? `/api/admin/cities/alias?alias=${code}` : `/api/admin/cities?code=${code}`;
             await fetch(url, {method: 'DELETE'});
             loadCities();
         }
 
         async function loadDrivers() {
-            const res = await fetch('/api/drivers');
+            const res = await fetch('/api/admin/drivers');
             const drivers = await res.json();
             const tbody = document.querySelector('#driversTable tbody');
             tbody.innerHTML = drivers.map(d => `
@@ -179,7 +179,7 @@
             if (!file) return alert('בחר קובץ');
             const formData = new FormData();
             formData.append('file', file);
-            const res = await fetch('/api/cities/import', {method: 'POST', body: formData});
+            const res = await fetch('/api/admin/cities/import', {method: 'POST', body: formData});
             const result = await res.json();
             alert(`נוספו: ${result.added}, עודכנו: ${result.updated}, דולגו: ${result.skipped}`);
             loadCities();
@@ -190,14 +190,14 @@
             if (!file) return alert('בחר קובץ');
             const formData = new FormData();
             formData.append('file', file);
-            const res = await fetch('/api/drivers/import', {method: 'POST', body: formData});
+            const res = await fetch('/api/admin/drivers/import', {method: 'POST', body: formData});
             const result = await res.json();
             alert(`נוספו: ${result.added}, עודכנו: ${result.updated}, דולגו: ${result.skipped}`);
             loadDrivers();
         }
 
         function downloadTemplate() {
-            window.location.href = '/api/drivers/template';
+            window.location.href = '/api/admin/drivers/template';
         }
 
         async function addDriver() {
@@ -205,7 +205,7 @@
             const carNumber = document.getElementById('driverCarNumber').value;
             const phone = document.getElementById('driverPhone').value;
             const cities = document.getElementById('driverCities').value;
-            await fetch('/api/drivers', {
+            await fetch('/api/admin/drivers', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({name, phone, car_number: carNumber, cities})
@@ -219,7 +219,7 @@
 
         async function deleteDriver(id) {
             if (!confirm('האם למחוק?')) return;
-            await fetch(`/api/drivers?id=${id}`, {method: 'DELETE'});
+            await fetch(`/api/admin/drivers?id=${id}`, {method: 'DELETE'});
             loadDrivers();
         }
 

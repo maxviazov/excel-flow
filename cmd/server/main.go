@@ -28,9 +28,16 @@ type ProcessResponse struct {
 }
 
 func main() {
+	// Main app API
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
+	
+	// Admin panel API
+	setupAdminRoutes()
+	
+	// Static files
+	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServer(http.Dir("./web/admin"))))
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 
 	port := os.Getenv("PORT")
@@ -142,4 +149,9 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
+}
+
+func setupAdminRoutes() {
+	// Placeholder for admin routes - will be implemented in admin package
+	// For now, admin panel runs on separate port 8081
 }

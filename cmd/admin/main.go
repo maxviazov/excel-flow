@@ -18,15 +18,16 @@ func main() {
 	cityService = admin.NewCityService("configs/dictionaries/city.db")
 	driverService = admin.NewDriverService("configs/dictionaries/drivers.db")
 
-	http.HandleFunc("/api/cities", handleCities)
-	http.HandleFunc("/api/cities/alias", handleCityAlias)
-	http.HandleFunc("/api/cities/import", handleCitiesImport)
-	http.HandleFunc("/api/drivers", handleDrivers)
-	http.HandleFunc("/api/drivers/import", handleDriversImport)
-	http.HandleFunc("/api/drivers/template", handleDriversTemplate)
+	http.HandleFunc("/api/admin/cities", handleCities)
+	http.HandleFunc("/api/admin/cities/alias", handleCityAlias)
+	http.HandleFunc("/api/admin/cities/import", handleCitiesImport)
+	http.HandleFunc("/api/admin/drivers", handleDrivers)
+	http.HandleFunc("/api/admin/drivers/import", handleDriversImport)
+	http.HandleFunc("/api/admin/drivers/template", handleDriversTemplate)
+	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServer(http.Dir("web/admin"))))
 	http.Handle("/", http.FileServer(http.Dir("web/admin")))
 
-	log.Println("Admin panel running on http://localhost:8081")
+	log.Println("Admin panel: http://localhost:8081/admin")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
