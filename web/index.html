@@ -86,6 +86,8 @@
         function handleFileSelect() {
             const file = fileInput.files[0];
             if (file) {
+                uploadedFile = null;
+                processBtn.disabled = true;
                 fileName.textContent = file.name;
                 fileInfo.style.display = 'block';
                 uploadFile(file);
