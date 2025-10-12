@@ -2,7 +2,6 @@ package admin
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/xuri/excelize/v2"
@@ -123,12 +122,11 @@ func (s *DriverService) ImportFromExcel(filePath string) (*ImportResult, error) 
 		err := db.QueryRow(`SELECT id FROM drivers WHERE name = ?`, name).Scan(&driverID)
 
 		if err == sql.ErrNoRows {
-			res, err := db.Exec(`INSERT INTO drivers (name, phone, car_number, cities) VALUES (?, ?, ?, ?)`,
+			_, err := db.Exec(`INSERT INTO drivers (name, phone, car_number, cities) VALUES (?, ?, ?, ?)`,
 				name, phone, carNumber, cities)
 			if err != nil {
 				return nil, err
 			}
-			driverID, _ = res.LastInsertId()
 			result.Added++
 		} else if err != nil {
 			return nil, err
