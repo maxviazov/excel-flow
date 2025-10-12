@@ -40,10 +40,6 @@ func (s *CityService) ImportFromExcel(filePath string) (*ImportResult, error) {
 
 		code := strings.TrimSpace(row[0])
 		nameHeb := strings.TrimSpace(row[1])
-		nameEng := ""
-		if len(row) > 2 {
-			nameEng = strings.TrimSpace(row[2])
-		}
 
 		if code == "" || nameHeb == "" {
 			result.Skipped++
