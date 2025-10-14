@@ -50,11 +50,11 @@ async function uploadFile(file) {
         const data = await res.json();
         
         if (res.ok) {
-            uploadedFile = data.path;
+            uploadedFile = data.fullPath || data.path;
             addLog('✅ קובץ הועלה בהצלחה');
             processBtn.disabled = false;
         } else {
-            addLog('❌ שגיאה בהעלאת קובץ: ' + data.error, true);
+            addLog('❌ שגיאה בהעלאת קובץ: ' + (data.error || 'Unknown error'), true);
         }
     } catch (err) {
         addLog('❌ שגיאה: ' + err.message, true);
