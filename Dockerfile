@@ -14,6 +14,7 @@ WORKDIR /app
 COPY --from=builder /app/server .
 COPY --from=builder /app/configs ./configs
 COPY --from=builder /app/testdata/sample.xlsx ./testdata/sample.xlsx
+COPY --from=builder /app/testdata/drivers_summary.xlsx ./testdata/drivers_summary.xlsx
 RUN mkdir -p uploads outputs
 
 EXPOSE 8080
