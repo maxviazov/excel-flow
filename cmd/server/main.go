@@ -52,22 +52,17 @@ func main() {
 	cityService = admin.NewCityService("configs/dictionaries/city.db")
 	driverService = admin.NewDriverService(driverDBPath)
 
-	// Main app API
+	// API endpoints only
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
-
-	// Admin panel API
 	http.HandleFunc("/api/admin/cities", handleCities)
 	http.HandleFunc("/api/admin/cities/alias", handleCityAlias)
 	http.HandleFunc("/api/admin/cities/import", handleCitiesImport)
 	http.HandleFunc("/api/admin/drivers", handleDrivers)
 	http.HandleFunc("/api/admin/drivers/import", handleDriversImport)
 	http.HandleFunc("/api/admin/drivers/template", handleDriversTemplate)
-
-	// Static files
-	http.Handle("/admin/", noCacheMiddleware(http.StripPrefix("/admin/", http.FileServer(http.Dir("./web/admin")))))
-	http.Handle("/", noCacheMiddleware(http.FileServer(http.Dir("./web"))))
+	http.HandleFunc("/health", handleHealth)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -88,17 +83,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
-			next.ServeHTTP(w, r)
-		},
-	)
-}
-
-func noCacheMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-			w.Header().Set("Pragma", "no-cache")
-			w.Header().Set("Expires", "0")
 			next.ServeHTTP(w, r)
 		},
 	)
@@ -205,4 +189,8 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
+}
+
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }

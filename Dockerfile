@@ -12,10 +12,8 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates sqlite-libs
 WORKDIR /app
 COPY --from=builder /app/server .
-COPY --from=builder /app/web ./web
 COPY --from=builder /app/configs ./configs
-COPY --from=builder /app/testdata ./testdata
-RUN mkdir -p uploads outputs
+RUN mkdir -p uploads outputs testdata
 
 EXPOSE 8080
 CMD ["./server"]

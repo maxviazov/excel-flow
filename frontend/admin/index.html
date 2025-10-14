@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול מאגרי מידע</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ניהול מאגרי מידע</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('cities')">ערים</button>
+            <button class="tab" onclick="showTab('drivers')">נהגים</button>
+        </div>
+
+        <div id="cities" class="section active">
+            <h2>ניהול ערים</h2>
+            <div class="form">
+                <input type="file" id="citiesFile" accept=".xlsx,.xls">
+                <button onclick="importCities()">ייבא מקובץ Excel</button>
+            </div>
+            <div class="form">
+                <input type="text" id="cityCode" placeholder="קוד עיר">
+                <input type="text" id="cityNameHeb" placeholder="שם בעברית">
+                <input type="text" id="cityNameEng" placeholder="שם באנגלית">
+                <button onclick="addCity()">הוסף עיר</button>
+            </div>
+            <div class="form">
+                <input type="text" id="aliasHeb" placeholder="כינוי בעברית">
+                <input type="text" id="aliasCityCode" placeholder="קוד עיר">
+                <button onclick="addAlias()">הוסף כינוי</button>
+            </div>
+            <table id="citiesTable">
+                <thead>
+                    <tr>
+                        <th>קוד</th>
+                        <th>שם עברי</th>
+                        <th>שם אנגלי</th>
+                        <th>סוג</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="drivers" class="section">
+            <h2>ניהול נהגים</h2>
+            <div class="form">
+                <button onclick="downloadTemplate()">הורד תבנית Excel</button>
+                <input type="file" id="driversFile" accept=".xlsx,.xls">
+                <button onclick="importDrivers()">ייבא מקובץ Excel</button>
+            </div>
+            <div class="form">
+                <input type="text" id="driverName" placeholder="שם נהג">
+                <input type="text" id="driverCarNumber" placeholder="מספר רכב">
+                <input type="text" id="driverPhone" placeholder="טלפון">
+                <input type="text" id="driverCities" placeholder="ערים (מופרד בפסיק)">
+                <button onclick="addDriver()">הוסף נהג</button>
+            </div>
+            <table id="driversTable">
+                <thead>
+                    <tr>
+                        <th>שם</th>
+                        <th>מספר רכב</th>
+                        <th>טלפון</th>
+                        <th>ערים</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../public/config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

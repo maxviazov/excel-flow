@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/maxviazov/excel-flow/internal/config"
+	"github.com/maxviazov/excel-flow/internal/drivers"
 	"github.com/maxviazov/excel-flow/internal/ingest"
 	"github.com/maxviazov/excel-flow/internal/log"
 	"github.com/maxviazov/excel-flow/internal/pipelines"
@@ -54,10 +55,23 @@ func (r *realPipeline) Run(_ context.Context, cfg *config.Config, log zerolog.Lo
 	}
 	log.Info().Msg("Staging file written successfully")
 
+	// Load drivers registry
+	var driverRegistry *drivers.Registry
+	driversPath := "testdata/drivers_summary.xlsx"
+	if _, err := os.Stat(driversPath); err == nil {
+		log.Info().Str("file", driversPath).Msg("Loading drivers registry")
+		driverRegistry, err = drivers.LoadFromExcel(driversPath)
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to load drivers registry, continuing without drivers")
+		} else {
+			log.Info().Msg("Drivers registry loaded successfully")
+		}
+	}
+
 	// Write MOH file
 	mohFile := "out/moh_staging.xlsx"
 	log.Info().Str("file", mohFile).Msg("Writing MOH file")
-	if err := writer.WriteMOH(mohFile, groups); err != nil {
+	if err := writer.WriteMOH(mohFile, groups, driverRegistry); err != nil {
 		return err
 	}
 	log.Info().Msg("MOH file written successfully")
