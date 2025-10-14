@@ -13,7 +13,8 @@ RUN apk --no-cache add ca-certificates sqlite-libs
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY --from=builder /app/configs ./configs
-RUN mkdir -p uploads outputs testdata
+COPY --from=builder /app/testdata/sample.xlsx ./testdata/sample.xlsx
+RUN mkdir -p uploads outputs
 
 EXPOSE 8080
 CMD ["./server"]
