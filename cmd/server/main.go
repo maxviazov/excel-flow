@@ -86,12 +86,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 			"http://localhost:8080":                                      true,
 		}
 		
-		if origin != "" && allowedOrigins[origin] {
+		// Temporarily allow all origins for debugging
+		if origin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			log.Printf("CORS: Allowed origin %s", origin)
-		} else if origin != "" {
-			log.Printf("CORS: Rejected origin %s", origin)
 		}
 		
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
