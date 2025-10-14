@@ -14,46 +14,12 @@ import (
 )
 
 func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, driverRegistry *drivers.Registry) error {
-	f := excelize.NewFile()
+	// Open template file
+	f, err := excelize.OpenFile("testdata/sample.xlsx")
+	if err != nil {
+		return fmt.Errorf("failed to open template: %w", err)
+	}
 	sh := "Sheet1"
-	
-	// Create header row from official MOH template
-	headers := []string{
-		"שם הספק",
-		"ח\"פ ספק ",
-		"מספר משרד הבריאות",
-		"תאריך",
-		"מס.רכב",
-		"שם הנהג",
-		"טלפון נהג",
-		"לקוח",
-		"סוג לקוח (קמעונאי,מפעל/מחסן)",
-		"קוד עיר",
-		"כתובת",
-		"ח\"פ לקוח \nאו מספר אישור משרד הבריאות במקרים בהם המשלוח הוא למפעל מאושר",
-		"מספר סניף הרשת",
-		"מספר תעודת משלוח",
-		"בשר בהמות גולמי",
-		"בשר בהמות מיבוא קפוא",
-		"בשר בהמות מעובד",
-		"עוף גולמי (עוף שחוט)",
-		"עוף מעובד",
-		"דגים גולמי (מקומי)",
-		"דגים יבוא",
-		"דגים מעובדים",
-		"מוצרים מוכנים לאכילה",
-		"נוסף א",
-		"נוסף ב",
-		"סה\"כ קרטונים",
-		"סה\"כ משקל",
-		"סבב יומי",
-		"קוד ביטול דיווח משלוח\n(למקרים בהם נדרש לבטל תעודת משלוח שדווחה ולא יצאה מהמפעל לשיווק",
-		"משווק באמצעות",
-	}
-	for i, h := range headers {
-		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
-		f.SetCellStr(sh, cell, h)
-	}
 
 	// Sort keys for stability
 	keys := make([]pipelines.GroupKey, 0, len(groups))
@@ -77,39 +43,49 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 	for _, k := range keys {
 		v := groups[k]
 		
-		// Set values according to MOH template
-		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ") // שם הספק
-		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856) // ח"פ ספק
-		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908") // מספר משרד הבריאות
-		f.SetCellValue(sh, fmt.Sprintf("D%d", row), time.Now()) // תאריך
+		// Copy styles from template row 2
+		for col := 1; col <= 30; col++ {
+			templateCell, _ := excelize.CoordinatesToCellName(col, 2)
+			targetCell, _ := excelize.CoordinatesToCellName(col, row)
+			styleID, _ := f.GetCellStyle(sh, templateCell)
+			f.SetCellStyle(sh, targetCell, targetCell, styleID)
+		}
+		
+		// Set values
+		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
+		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)
+		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908")
+		f.SetCellValue(sh, fmt.Sprintf("D%d", row), time.Now())
 		
 		// 5-7: vehicle and driver info
 		if driverRegistry != nil {
 			driver := driverRegistry.GetRandomDriverForCity(v.CityCode)
 			if driver != nil {
-				f.SetCellStr(sh, fmt.Sprintf("E%d", row), driver.LicenseNumber) // מס.רכב
-				f.SetCellStr(sh, fmt.Sprintf("F%d", row), driver.Name) // שם הנהג
-				f.SetCellStr(sh, fmt.Sprintf("G%d", row), driver.Phone) // טלפון נהג
+				f.SetCellStr(sh, fmt.Sprintf("E%d", row), driver.LicenseNumber)
+				f.SetCellStr(sh, fmt.Sprintf("F%d", row), driver.Name)
+				f.SetCellStr(sh, fmt.Sprintf("G%d", row), driver.Phone)
 			}
 		}
 		
 		if v.ClientName != "" {
-			f.SetCellStr(sh, fmt.Sprintf("H%d", row), textutil.SanitizeForMOH(v.ClientName)) // לקוח
+			f.SetCellStr(sh, fmt.Sprintf("H%d", row), textutil.SanitizeForMOH(v.ClientName))
 		}
-		f.SetCellStr(sh, fmt.Sprintf("I%d", row), "קמעונאי") // סוג לקוח
+		f.SetCellStr(sh, fmt.Sprintf("I%d", row), "קמעונאי")
 		if v.CityCode != "" {
-			f.SetCellStr(sh, fmt.Sprintf("J%d", row), v.CityCode) // קוד עיר
+			f.SetCellStr(sh, fmt.Sprintf("J%d", row), v.CityCode)
 		}
 		if v.Address != "" {
-			f.SetCellStr(sh, fmt.Sprintf("K%d", row), textutil.SanitizeForMOH(v.Address)) // כתובת
+			f.SetCellStr(sh, fmt.Sprintf("K%d", row), textutil.SanitizeForMOH(v.Address))
 		}
-		f.SetCellValue(sh, fmt.Sprintf("L%d", row), parseNumber(k.ClientLicense)) // ח"פ לקוח
-		// M is empty - מספר סניף הרשת
-		f.SetCellValue(sh, fmt.Sprintf("N%d", row), parseNumber(k.OrderID)) // מספר תעודת משלוח
-		// O-Y are empty (meat/fish categories)
-		f.SetCellValue(sh, fmt.Sprintf("Z%d", row), v.TotalPackages) // סה"כ קרטונים
-		f.SetCellValue(sh, fmt.Sprintf("AA%d", row), v.TotalWeight) // סה"כ משקל
-		f.SetCellValue(sh, fmt.Sprintf("AB%d", row), 1) // סבב יומי
+		f.SetCellValue(sh, fmt.Sprintf("L%d", row), parseNumber(k.ClientLicense))
+		f.SetCellValue(sh, fmt.Sprintf("M%d", row), 0)
+		f.SetCellValue(sh, fmt.Sprintf("N%d", row), parseNumber(k.OrderID))
+		// O-V are empty (meat/fish categories)
+		f.SetCellValue(sh, fmt.Sprintf("W%d", row), v.TotalWeight) // Col 23
+		// X, Y are empty
+		f.SetCellValue(sh, fmt.Sprintf("Z%d", row), v.TotalWeight) // Col 26
+		f.SetCellValue(sh, fmt.Sprintf("AA%d", row), v.TotalWeight) // Col 27
+		f.SetCellValue(sh, fmt.Sprintf("AB%d", row), 1) // Col 28
 		// AC, AD are empty
 		row++
 	}
