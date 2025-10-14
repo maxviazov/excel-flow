@@ -74,40 +74,41 @@ func main() {
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			origin := r.Header.Get("Origin")
-			// Allow specific origins
-			allowedOrigins := map[string]bool{
-				"https://excel.viazov.dev":                                true,
-				"http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com": true,
-				"https://d18sq2gf3s7zhe.cloudfront.net":                      true,
-				"http://localhost:8080":                                      true,
-			}
-			if allowedOrigins[origin] {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
-			} else {
-				w.Header().Set("Access-Control-Allow-Origin", "*")
-			}
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			if r.Method == "OPTIONS" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		},
-	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		allowedOrigins := map[string]bool{
+			"https://excel.viazov.dev":                                   true,
+			"https://api.viazov.dev":                                     true,
+			"http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com": true,
+			"https://d18sq2gf3s7zhe.cloudfront.net":                      true,
+			"http://localhost:8080":                                      true,
+		}
+		if allowedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Upload request from: %s, Method: %s", r.RemoteAddr, r.Method)
+	
 	if r.Method != "POST" {
+		log.Printf("Invalid method: %s", r.Method)
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
+		log.Printf("Failed to get file from form: %v", err)
 		respondJSON(w, http.StatusBadRequest, map[string]string{"error": "No file uploaded"})
 		return
 	}
