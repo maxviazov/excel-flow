@@ -8,9 +8,11 @@
 - **API**: http://excel-flow-alb-1086104942.us-east-1.elb.amazonaws.com
 
 ### Frontend (S3 + CloudFront)
-- **S3 Website**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com ✅ Используйте этот!
-- **CloudFront**: https://d18sq2gf3s7zhe.cloudfront.net (кеш обновляется ~5 минут)
+- **S3 Website (HTTP)**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com ✅ **ИСПОЛЬЗУЙТЕ ЭТОТ!**
+- **CloudFront (HTTPS)**: https://d18sq2gf3s7zhe.cloudfront.net ⚠️ Не работает с HTTP API (Mixed Content)
 - **Admin**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com/admin
+
+**Важно**: CloudFront использует HTTPS, а API работает по HTTP. Браузер блокирует Mixed Content. Используйте S3 напрямую или настройте HTTPS для API.
 
 ### Инфраструктура
 - ✅ VPC с публичными подсетями
@@ -26,11 +28,11 @@
 
 ### Открыть приложение:
 ```bash
-# Через CloudFront (HTTPS)
-open https://d18sq2gf3s7zhe.cloudfront.net
-
-# Или через S3 (HTTP)
+# Через S3 (HTTP) - РАБОТАЕТ!
 open http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com
+
+# CloudFront (HTTPS) - НЕ РАБОТАЕТ из-за Mixed Content
+# open https://d18sq2gf3s7zhe.cloudfront.net
 ```
 
 ### Проверить API:

@@ -14,11 +14,24 @@ import (
 )
 
 func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, driverRegistry *drivers.Registry) error {
-	f, err := excelize.OpenFile("testdata/sample.xlsx")
-	if err != nil {
-		return fmt.Errorf("failed to open template: %w", err)
-	}
+	f := excelize.NewFile()
 	sh := "Sheet1"
+	
+	// Create header row
+	headers := []string{
+		"שם ספק", "ח.פ ספק", "מספר רישיון ספק", "תאריך אספקה",
+		"מספר רישיון רכב", "שם נהג", "טלפון נהג",
+		"שם לקוח", "סוג לקוח", "קוד ישוב", "כתובת",
+		"ח.פ לקוח", "מספר רישיון לקוח", "מספר הזמנה",
+		"בשר בקר טרי", "בשר בקר קפוא", "בשר עוף טרי", "בשר עוף קפוא",
+		"בשר כבש טרי", "בשר כבש קפוא", "דגים טריים", "דגים קפואים",
+		"משקל כולל", "ביצים", "חלב", "אריזות", "משקל נטו", "מספר משלוחים",
+		"הערות", "סטטוס",
+	}
+	for i, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellStr(sh, cell, h)
+	}
 
 	// Sort keys for stability
 	keys := make([]pipelines.GroupKey, 0, len(groups))
@@ -42,14 +55,6 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 	for _, k := range keys {
 		v := groups[k]
 		
-		// Copy styles from template
-		for col := 1; col <= 30; col++ {
-			templateCell, _ := excelize.CoordinatesToCellName(col, 2)
-			targetCell, _ := excelize.CoordinatesToCellName(col, row)
-			styleID, _ := f.GetCellStyle(sh, templateCell)
-			f.SetCellStyle(sh, targetCell, targetCell, styleID)
-		}
-
 		// Set values
 		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
 		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)

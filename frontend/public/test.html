@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="result"></pre>
+    
+    <script>
+        const API_URL = 'http://excel-flow-alb-1086104942.us-east-1.elb.amazonaws.com';
+        
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                result.textContent = `Success!\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
