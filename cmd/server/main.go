@@ -76,9 +76,21 @@ func main() {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+			origin := r.Header.Get("Origin")
+			// Allow specific origins
+			allowedOrigins := map[string]bool{
+				"https://excel.viazov.dev":                                true,
+				"http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com": true,
+				"https://d18sq2gf3s7zhe.cloudfront.net":                      true,
+				"http://localhost:8080":                                      true,
+			}
+			if allowedOrigins[origin] {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			} else {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+			}
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
 				return
