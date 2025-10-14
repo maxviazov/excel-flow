@@ -3,6 +3,8 @@ package pipelines
 import (
 	"fmt"
 	"time"
+
+	"github.com/maxviazov/excel-flow/internal/textutil"
 )
 
 type GroupKey struct {
@@ -54,12 +56,12 @@ func BuildGroups(rows []Row) (map[GroupKey]*GroupVal, []Issue) {
 		val.Rows = append(val.Rows, r)
 		if val.ClientName == "" {
 			if s, ok := r["client_name_he"].(string); ok && s != "" {
-				val.ClientName = s
+				val.ClientName = textutil.SanitizeForMOH(s)
 			}
 		}
 		if val.Address == "" {
 			if s, ok := r["client_address"].(string); ok && s != "" {
-				val.Address = s
+				val.Address = textutil.SanitizeForMOH(s)
 			}
 		}
 

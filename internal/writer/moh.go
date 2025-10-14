@@ -3,61 +3,22 @@ package writer
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/xuri/excelize/v2"
 
+	"github.com/maxviazov/excel-flow/internal/drivers"
 	"github.com/maxviazov/excel-flow/internal/pipelines"
+	"github.com/maxviazov/excel-flow/internal/textutil"
 )
 
-func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) error {
-	f := excelize.NewFile()
-	sh := "data"
-	f.NewSheet(sh)
-	f.DeleteSheet("Sheet1")
-
-	// Set RTL (right-to-left) for Hebrew
-	f.SetSheetView(sh, 0, &excelize.ViewOptions{RightToLeft: boolPtr(true)})
-
-	// MOH headers in exact order
-	headers := []string{
-		"שם הספק",
-		"ח\"פ ספק",
-		"מספר משרד הבריאות",
-		"תאריך",
-		"מס.רכב",
-		"שם הנהג",
-		"טלפון נהג",
-		"לקוח",
-		"סוג לקוח (קמעונאי,מפעל/מחסן)",
-		"קוד עיר",
-		"כתובת",
-		"ח\"פ לקוח / מספר אישור משרד הבריאות",
-		"מספר סניף הרשת",
-		"מספר תעודת משלוח",
-		"בשר בהמות גולמי (משקל)",
-		"בשר בהמות מיבוא קפוא (משקל)",
-		"בשר בהמות מעובד (משקל)",
-		"עוף גולמי (עוף שחוט) (משקל)",
-		"עוף מעובד (משקל)",
-		"דגים גולמי (מקומי) (משקל)",
-		"דגים יבוא",
-		"דגים מעובדים",
-		"מוצרים מוכנים לאכילה",
-		"נוסף א",
-		"נוסף ב",
-		"סה\"כ קרטונים",
-		"סה\"כ משקל",
-		"סבב יומי",
-		"קוד ביטול דיווח משלוח\n(למקרים בהם נדרש לבטל תעודת משלוח שדווחה ולא יצאה מהמפעל לשיווק",
-		"משווק באמצעות",
+func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, driverRegistry *drivers.Registry) error {
+	f, err := excelize.OpenFile("testdata/sample.xlsx")
+	if err != nil {
+		return fmt.Errorf("failed to open template: %w", err)
 	}
-
-	// Write headers
-	for i, h := range headers {
-		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
-		f.SetCellValue(sh, cell, h)
-	}
+	sh := "Sheet1"
 
 	// Sort keys for stability
 	keys := make([]pipelines.GroupKey, 0, len(groups))
@@ -80,36 +41,51 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) er
 	row := 2
 	for _, k := range keys {
 		v := groups[k]
-		// Set non-zero values only
-		setCellIfNotEmpty := func(col int, val any) {
-			cell, _ := excelize.CoordinatesToCellName(col, row)
-			if str, ok := val.(string); ok && str != "" && str != "0" {
-				f.SetCellValue(sh, cell, val)
-			} else if num, ok := val.(float64); ok && num != 0 {
-				f.SetCellValue(sh, cell, fmt.Sprintf("%.3f", num))
-			}
+		
+		// Copy styles from template
+		for col := 1; col <= 30; col++ {
+			templateCell, _ := excelize.CoordinatesToCellName(col, 2)
+			targetCell, _ := excelize.CoordinatesToCellName(col, row)
+			styleID, _ := f.GetCellStyle(sh, templateCell)
+			f.SetCellStyle(sh, targetCell, targetCell, styleID)
 		}
 
-		// Set required fields
-		setCellIfNotEmpty(1, "דולינה גרופ בע\"מ")
-		setCellIfNotEmpty(2, "511777856")
-		setCellIfNotEmpty(3, "P1908")
-		setCellIfNotEmpty(4, time.Now().Format("2006-01-02"))
-		// 5-7: vehicle info - empty
-		setCellIfNotEmpty(8, v.ClientName)
-		setCellIfNotEmpty(9, "קמעונאי")
-		setCellIfNotEmpty(10, v.CityCode) // код города
-		setCellIfNotEmpty(11, v.Address)
-		setCellIfNotEmpty(12, k.ClientLicense)
-		// 13: branch number - empty
-		setCellIfNotEmpty(14, k.OrderID) // один номер документа на строку
-		// 15-22: meat/fish categories - all zero, skip
-		setCellIfNotEmpty(23, v.TotalWeight) // מוצרים מוכנים לאכילה
-		// 24-25: additional categories - zero, skip
-		setCellIfNotEmpty(26, v.TotalPackages) // סה"כ קרטונים
-		setCellIfNotEmpty(27, v.TotalWeight)   // סה"כ משקל
-		setCellIfNotEmpty(28, "1")             // סבב יומי
-		// 29-30: cancellation/marketing - empty
+		// Set values
+		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
+		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)
+		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908")
+		f.SetCellValue(sh, fmt.Sprintf("D%d", row), time.Now())
+		
+		// 5-7: vehicle info - assign driver based on city code
+		if driverRegistry != nil {
+			driver := driverRegistry.GetRandomDriverForCity(v.CityCode)
+			if driver != nil {
+				f.SetCellStr(sh, fmt.Sprintf("E%d", row), driver.LicenseNumber)
+				f.SetCellStr(sh, fmt.Sprintf("F%d", row), driver.Name)
+				f.SetCellStr(sh, fmt.Sprintf("G%d", row), driver.Phone)
+			}
+		}
+		
+		if v.ClientName != "" {
+			f.SetCellStr(sh, fmt.Sprintf("H%d", row), textutil.SanitizeForMOH(v.ClientName))
+		}
+		f.SetCellStr(sh, fmt.Sprintf("I%d", row), "קמעונאי")
+		if v.CityCode != "" {
+			f.SetCellStr(sh, fmt.Sprintf("J%d", row), v.CityCode)
+		}
+		if v.Address != "" {
+			f.SetCellStr(sh, fmt.Sprintf("K%d", row), textutil.SanitizeForMOH(v.Address))
+		}
+		f.SetCellValue(sh, fmt.Sprintf("L%d", row), parseNumber(k.ClientLicense))
+		f.SetCellValue(sh, fmt.Sprintf("M%d", row), 0)
+		f.SetCellValue(sh, fmt.Sprintf("N%d", row), parseNumber(k.OrderID))
+		// O-V are empty (meat/fish categories)
+		f.SetCellValue(sh, fmt.Sprintf("W%d", row), v.TotalWeight)
+		// X, Y are empty
+		f.SetCellValue(sh, fmt.Sprintf("Z%d", row), v.TotalPackages)
+		f.SetCellValue(sh, fmt.Sprintf("AA%d", row), v.TotalWeight)
+		f.SetCellValue(sh, fmt.Sprintf("AB%d", row), 1)
+		// AC, AD are empty
 		row++
 	}
 
@@ -118,4 +94,11 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal) er
 
 func boolPtr(b bool) *bool {
 	return &b
+}
+
+func parseNumber(s string) interface{} {
+	if num, err := strconv.ParseFloat(s, 64); err == nil {
+		return num
+	}
+	return s
 }

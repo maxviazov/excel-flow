@@ -1,36 +1,30 @@
-# Git
-.git
-.gitignore
+# Frontend (не нужен в Docker образе)
+frontend/
 
-# IDE
-.idea
-.vscode
-*.swp
-
-# Build artifacts
-bin/
-out/
-outputs/
+# Временные файлы
 uploads/
+outputs/
 logs/
 
-# Terraform
-terraform/.terraform/
-terraform/*.tfstate*
-terraform/terraform.tfvars
+# Git
+.git/
+.github/
 
-# Documentation
+# Terraform
+terraform/
+*.tfstate
+*.tfstate.backup
+
+# Документация
 docs/
 *.md
-!README.md
 
-# Test files
-*_test.go
+# Скрипты
+*.sh
 
-# OS
-.DS_Store
-Thumbs.db
+# IDE
+.vscode/
+.idea/
 
-# Temp
-*.tmp
-*.log
+# Бинарники
+bin/
