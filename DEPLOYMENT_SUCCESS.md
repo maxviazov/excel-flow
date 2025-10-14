@@ -8,8 +8,8 @@
 - **API**: http://excel-flow-alb-1086104942.us-east-1.elb.amazonaws.com
 
 ### Frontend (S3 + CloudFront)
-- **S3 Website**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com
-- **CloudFront**: https://d18sq2gf3s7zhe.cloudfront.net
+- **S3 Website**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com ✅ Используйте этот!
+- **CloudFront**: https://d18sq2gf3s7zhe.cloudfront.net (кеш обновляется ~5 минут)
 - **Admin**: http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com/admin
 
 ### Инфраструктура
