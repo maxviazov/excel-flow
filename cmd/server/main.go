@@ -319,7 +319,8 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 			Name      string `json:"name"`
 			Phone     string `json:"phone"`
 			CarNumber string `json:"car_number"`
-			Cities    string `json:"cities"`
+			CityCodes string `json:"city_codes"`
+			CityNames string `json:"city_names"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -328,14 +329,14 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 		
 		if req.ID > 0 {
 			// Update
-			if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+			if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.CityCodes, req.CityNames); err != nil {
 				respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				return
 			}
 			respondJSON(w, http.StatusOK, map[string]string{"message": "Driver updated"})
 		} else {
 			// Add
-			if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+			if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.CityCodes, req.CityNames); err != nil {
 				respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				return
 			}
