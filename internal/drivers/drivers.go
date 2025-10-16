@@ -1,11 +1,13 @@
 package drivers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -81,6 +83,74 @@ func LoadFromExcel(path string) (*Registry, error) {
 		}
 
 		_ = i
+	}
+
+	return reg, nil
+}
+
+// LoadFromDB загружает водителей из SQLite базы данных
+func LoadFromDB(dbPath string) (*Registry, error) {
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open drivers DB: %w", err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`SELECT name, COALESCE(phone, ''), COALESCE(car_number, ''), COALESCE(city_codes, ''), COALESCE(city_names, '') FROM drivers`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query drivers: %w", err)
+	}
+	defer rows.Close()
+
+	reg := &Registry{
+		drivers:    make([]Driver, 0),
+		byCityCode: make(map[string][]Driver),
+	}
+
+	for rows.Next() {
+		var name, phone, carNumber, cityCodes, cityNames string
+		if err := rows.Scan(&name, &phone, &carNumber, &cityCodes, &cityNames); err != nil {
+			continue
+		}
+
+		driver := Driver{
+			Name:          strings.TrimSpace(name),
+			LicenseNumber: strings.TrimSpace(carNumber),
+			Phone:         strings.TrimSpace(phone),
+		}
+
+		// Parse city codes (comma separated)
+		if cityCodes != "" {
+			for _, code := range strings.Split(cityCodes, ",") {
+				code = strings.TrimSpace(code)
+				if code != "" {
+					driver.CityCodes = append(driver.CityCodes, strings.ToUpper(code))
+				}
+			}
+		}
+
+		// Parse city names and try to find codes from city.db
+		if cityNames != "" {
+			// For now, just store names as codes (will be enhanced later)
+			for _, name := range strings.Split(cityNames, ",") {
+				name = strings.TrimSpace(name)
+				if name != "" {
+					// Store name as-is for matching
+					driver.CityCodes = append(driver.CityCodes, strings.ToUpper(name))
+				}
+			}
+		}
+
+		if len(driver.CityCodes) == 0 {
+			continue
+		}
+
+		reg.drivers = append(reg.drivers, driver)
+
+		// Index by city codes
+		for _, code := range driver.CityCodes {
+			reg.byCityCode[code] = append(reg.byCityCode[code], driver)
+		}
 	}
 
 	return reg, nil

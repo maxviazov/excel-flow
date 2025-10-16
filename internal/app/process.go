@@ -21,9 +21,16 @@ func ProcessFile(inputPath, outputPath string) (int, int, error) {
 	}
 
 	var driverRegistry *drivers.Registry
-	driversPath := "testdata/drivers_summary.xlsx"
-	if _, err := os.Stat(driversPath); err == nil {
-		driverRegistry, _ = drivers.LoadFromExcel(driversPath)
+	// Try loading from DB first
+	driversDBPath := "/tmp/data/drivers.db"
+	if _, err := os.Stat(driversDBPath); err == nil {
+		driverRegistry, _ = drivers.LoadFromDB(driversDBPath)
+	} else {
+		// Fallback to Excel
+		driversPath := "testdata/drivers_summary.xlsx"
+		if _, err := os.Stat(driversPath); err == nil {
+			driverRegistry, _ = drivers.LoadFromExcel(driversPath)
+		}
 	}
 
 	if err := writer.WriteMOH(outputPath, groups, driverRegistry); err != nil {

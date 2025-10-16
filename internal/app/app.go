@@ -55,16 +55,28 @@ func (r *realPipeline) Run(_ context.Context, cfg *config.Config, log zerolog.Lo
 	}
 	log.Info().Msg("Staging file written successfully")
 
-	// Load drivers registry
+	// Load drivers registry from DB (fallback to Excel if DB not found)
 	var driverRegistry *drivers.Registry
-	driversPath := "testdata/drivers_summary.xlsx"
-	if _, err := os.Stat(driversPath); err == nil {
-		log.Info().Str("file", driversPath).Msg("Loading drivers registry")
-		driverRegistry, err = drivers.LoadFromExcel(driversPath)
+	driversDBPath := "/tmp/data/drivers.db"
+	if _, err := os.Stat(driversDBPath); err == nil {
+		log.Info().Str("db", driversDBPath).Msg("Loading drivers from database")
+		driverRegistry, err = drivers.LoadFromDB(driversDBPath)
 		if err != nil {
-			log.Warn().Err(err).Msg("Failed to load drivers registry, continuing without drivers")
+			log.Warn().Err(err).Msg("Failed to load drivers from DB, trying Excel fallback")
+			// Fallback to Excel
+			driversPath := "testdata/drivers_summary.xlsx"
+			if _, err := os.Stat(driversPath); err == nil {
+				driverRegistry, _ = drivers.LoadFromExcel(driversPath)
+			}
 		} else {
-			log.Info().Msg("Drivers registry loaded successfully")
+			log.Info().Msg("Drivers registry loaded from database successfully")
+		}
+	} else {
+		// Fallback to Excel if DB doesn't exist
+		driversPath := "testdata/drivers_summary.xlsx"
+		if _, err := os.Stat(driversPath); err == nil {
+			log.Info().Str("file", driversPath).Msg("Loading drivers from Excel (fallback)")
+			driverRegistry, _ = drivers.LoadFromExcel(driversPath)
 		}
 	}
 
