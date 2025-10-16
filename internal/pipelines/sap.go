@@ -93,7 +93,10 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 			if existing.CityNameHeb == "" && cityNameHeb != "" {
 				existing.CityNameHeb = cityNameHeb
 			}
-			if existing.CityCode == "" && cityCode != "" {
+			// Обновляем код города если новый код валидный (не 9999)
+			if cityCode != "" && cityCode != "9999" {
+				existing.CityCode = cityCode
+			} else if existing.CityCode == "" && cityCode != "" {
 				existing.CityCode = cityCode
 			}
 			// Добавляем номер документа в список

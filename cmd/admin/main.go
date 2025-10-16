@@ -121,7 +121,7 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+		if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.Cities, ""); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -139,7 +139,7 @@ func handleDrivers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+		if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.Cities, ""); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

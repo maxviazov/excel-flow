@@ -38,11 +38,6 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		},
 	)
 
-	// Create date style (date only, no time)
-	dateStyle, _ := f.NewStyle(&excelize.Style{
-		CustomNumFmt: strPtr("dd/mm/yyyy"),
-	})
-
 	// Write data rows
 	row := 2
 	for _, k := range keys {
@@ -60,11 +55,8 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
 		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)
 		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908")
-		// Set date with date-only format (truncate time to midnight)
-		now := time.Now()
-		dateOnly := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-		f.SetCellValue(sh, fmt.Sprintf("D%d", row), dateOnly)
-		f.SetCellStyle(sh, fmt.Sprintf("D%d", row), fmt.Sprintf("D%d", row), dateStyle)
+		// Set date as string in dd/mm/yyyy format
+		f.SetCellStr(sh, fmt.Sprintf("D%d", row), time.Now().Format("02/01/2006"))
 		
 		// 5-7: vehicle and driver info
 		if driverRegistry != nil {
