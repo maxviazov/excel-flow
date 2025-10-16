@@ -134,7 +134,7 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 		if len(skippedReasons) > 0 {
 			errMsg += ". Reasons: " + strings.Join(skippedReasons[:min(5, len(skippedReasons))], "; ")
 		}
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 
 	return groups, nil
