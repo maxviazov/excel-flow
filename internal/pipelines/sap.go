@@ -20,15 +20,18 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 	mappingRules := mapping.MapSAPtoInternal()
 	mappedData := mapping.ApplySelect(data, mappingRules)
 
-	for _, row := range mappedData {
+	var skippedReasons []string
+	for i, row := range mappedData {
 		// Extract and validate required fields
 		clientLicense := strings.TrimSpace(row["client_license_number"])
 		if clientLicense == "" {
+			skippedReasons = append(skippedReasons, fmt.Sprintf("row %d: empty client_license", i+2))
 			continue
 		}
 
 		orderID := strings.TrimSpace(row["order_id"])
 		if orderID == "" {
+			skippedReasons = append(skippedReasons, fmt.Sprintf("row %d: empty order_id", i+2))
 			continue
 		}
 
@@ -61,6 +64,7 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 
 		// Skip rows where weight <= 0
 		if weight <= 0 {
+			skippedReasons = append(skippedReasons, fmt.Sprintf("row %d: weight <= 0 (raw: %s, parsed: %.3f)", i+2, row["total_weight_raw"], weight))
 			continue
 		}
 
@@ -126,7 +130,11 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 	}
 
 	if len(groups) == 0 {
-		return nil, fmt.Errorf("no valid data found in %d rows", len(data))
+		errMsg := fmt.Sprintf("no valid data found in %d rows", len(data))
+		if len(skippedReasons) > 0 {
+			errMsg += ". Reasons: " + strings.Join(skippedReasons[:min(5, len(skippedReasons))], "; ")
+		}
+		return nil, fmt.Errorf(errMsg)
 	}
 
 	return groups, nil
@@ -169,6 +177,13 @@ func extractCityFromAddress(fullAddress string) (city, address string) {
 		address = ""
 	}
 	return city, address
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // lookupCityInfo ищет код города и название на иврите в SQLite базе
