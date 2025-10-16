@@ -30,6 +30,7 @@ type ProcessResponse struct {
 func main() {
 	// API endpoints
 	http.HandleFunc("/api/upload", handleUpload)
+	http.HandleFunc("/api/validate", handleValidate)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
 	http.HandleFunc("/health", handleHealth)
@@ -176,6 +177,39 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
+}
+
+func handleValidate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		FilePath string `json:"filePath"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondJSON(w, http.StatusBadRequest, map[string]interface{}{"valid": false, "error": "Invalid request"})
+		return
+	}
+
+	// Basic validation - check if file exists and is readable
+	if _, err := os.Stat(req.FilePath); os.IsNotExist(err) {
+		respondJSON(w, http.StatusOK, map[string]interface{}{
+			"valid": false,
+			"error": "File not found",
+		})
+		return
+	}
+
+	// Get file info
+	fileInfo, _ := os.Stat(req.FilePath)
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"valid":    true,
+		"fileSize": fileInfo.Size(),
+		"fileName": fileInfo.Name(),
+		"warnings": []string{},
+	})
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
