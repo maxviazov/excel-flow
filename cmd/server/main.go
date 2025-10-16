@@ -215,6 +215,10 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Disable caching
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	http.ServeFile(w, r, filePath)
