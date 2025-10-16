@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
+	"github.com/maxviazov/excel-flow/internal/admin"
 	"github.com/maxviazov/excel-flow/internal/app"
 )
 
@@ -27,13 +29,39 @@ type ProcessResponse struct {
 	ProcessTime string `json:"processTime"`
 }
 
+var (
+	cityService   *admin.CityService
+	driverService *admin.DriverService
+)
+
 func main() {
+	// Initialize admin services
+	cityService = admin.NewCityService("configs/dictionaries/city.db")
+	driverService = admin.NewDriverService("/tmp/data/drivers.db")
+	
+	// Ensure writable directory
+	os.MkdirAll("/tmp/data", 0755)
+	if _, err := os.Stat("/tmp/data/drivers.db"); os.IsNotExist(err) {
+		if src, err := os.Open("configs/dictionaries/drivers.db"); err == nil {
+			defer src.Close()
+			if dst, err := os.Create("/tmp/data/drivers.db"); err == nil {
+				defer dst.Close()
+				io.Copy(dst, src)
+			}
+		}
+	}
+	
 	// API endpoints
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/validate", handleValidate)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/export-csv/", handleExportCSV)
 	http.HandleFunc("/api/download/", handleDownload)
+	
+	// Admin endpoints
+	http.HandleFunc("/api/admin/cities", handleCities)
+	http.HandleFunc("/api/admin/drivers", handleDrivers)
+	
 	http.HandleFunc("/health", handleHealth)
 
 	port := os.Getenv("PORT")
@@ -229,6 +257,107 @@ func handleValidate(w http.ResponseWriter, r *http.Request) {
 		"fileName": fileInfo.Name(),
 		"warnings": []string{},
 	})
+}
+
+// Admin handlers
+func handleCities(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		cities, err := cityService.ListCities()
+		if err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		respondJSON(w, http.StatusOK, cities)
+		
+	case "POST":
+		var req struct {
+			Code    string `json:"code"`
+			NameHeb string `json:"name_heb"`
+			NameEng string `json:"name_eng"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+			return
+		}
+		if err := cityService.AddCity(req.Code, req.NameHeb, req.NameEng); err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		respondJSON(w, http.StatusOK, map[string]string{"message": "City added"})
+		
+	case "DELETE":
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Missing code"})
+			return
+		}
+		if err := cityService.DeleteCity(code); err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		respondJSON(w, http.StatusOK, map[string]string{"message": "City deleted"})
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleDrivers(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		drivers, err := driverService.ListDrivers()
+		if err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		respondJSON(w, http.StatusOK, drivers)
+		
+	case "POST":
+		var req struct {
+			ID        int    `json:"id"`
+			Name      string `json:"name"`
+			Phone     string `json:"phone"`
+			CarNumber string `json:"car_number"`
+			Cities    string `json:"cities"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+			return
+		}
+		
+		if req.ID > 0 {
+			// Update
+			if err := driverService.UpdateDriver(req.ID, req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+				respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return
+			}
+			respondJSON(w, http.StatusOK, map[string]string{"message": "Driver updated"})
+		} else {
+			// Add
+			if err := driverService.AddDriver(req.Name, req.Phone, req.CarNumber, req.Cities); err != nil {
+				respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return
+			}
+			respondJSON(w, http.StatusOK, map[string]string{"message": "Driver added"})
+		}
+		
+	case "DELETE":
+		idStr := r.URL.Query().Get("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id == 0 {
+			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+			return
+		}
+		if err := driverService.DeleteDriver(id); err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+		respondJSON(w, http.StatusOK, map[string]string{"message": "Driver deleted"})
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
