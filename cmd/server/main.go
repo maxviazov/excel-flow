@@ -32,6 +32,7 @@ func main() {
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/validate", handleValidate)
 	http.HandleFunc("/api/process", handleProcess)
+	http.HandleFunc("/api/export-csv/", handleExportCSV)
 	http.HandleFunc("/api/download/", handleDownload)
 	http.HandleFunc("/health", handleHealth)
 
@@ -157,6 +158,24 @@ func handleProcess(w http.ResponseWriter, r *http.Request) {
 			ProcessTime: time.Since(start).String(),
 		},
 	)
+}
+
+func handleExportCSV(w http.ResponseWriter, r *http.Request) {
+	filename := r.URL.Path[len("/api/export-csv/"):]
+	excelPath := filepath.Join("./outputs", filename)
+
+	if _, err := os.Stat(excelPath); os.IsNotExist(err) {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	// Convert Excel to CSV (simplified - just return success for now)
+	csvFilename := filename[:len(filename)-5] + ".csv"
+	w.Header().Set("Content-Disposition", "attachment; filename="+csvFilename)
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	
+	// For now, return a simple message
+	w.Write([]byte("CSV export feature - coming soon\n"))
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {

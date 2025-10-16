@@ -168,7 +168,10 @@ processBtn.onclick = async () => {
                 <p><strong>שורות בקובץ המקור:</strong> ${data.inputRows}</p>
                 <p><strong>שורות בקובץ הסופי:</strong> ${data.outputRows}</p>
                 <p><strong>זמן עיבוד:</strong> ${data.processTime}</p>
-                <button class="btn" onclick="downloadFile('${data.outputFile}')">⬇️ הורד קובץ</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="downloadFile('${data.outputFile}')" style="flex: 1;">⬇️ הורד Excel</button>
+                    <button class="btn btn-secondary" onclick="downloadCSV('${data.outputFile}')" style="flex: 1;">📄 הורד CSV</button>
+                </div>
             `;
             result.style.display = 'block';
             
@@ -274,6 +277,11 @@ function addLog(message, isError = false) {
 function downloadFile(filename) {
     window.location.href = `${API_BASE_URL}/api/download/${filename}`;
     showToast('⬇️ מוריד קובץ...', 'info');
+}
+
+function downloadCSV(filename) {
+    window.location.href = `${API_BASE_URL}/api/export-csv/${filename}`;
+    showToast('📄 מייצא ל-CSV...', 'info');
 }
 
 // Utilities
