@@ -82,6 +82,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 			"http://excel-viazov-dev.s3-website-us-east-1.amazonaws.com": true,
 			"https://d18sq2gf3s7zhe.cloudfront.net":                      true,
 			"http://localhost:8080":                                      true,
+			"http://localhost:3000":                                      true,
 		}
 		
 		if origin != "" && allowedOrigins[origin] {
@@ -209,4 +210,29 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// Admin handlers (stubs for now)
+func handleCities(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Cities endpoint"})
+}
+
+func handleCityAlias(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "City alias endpoint"})
+}
+
+func handleCitiesImport(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Cities import endpoint"})
+}
+
+func handleDrivers(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers endpoint"})
+}
+
+func handleDriversImport(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers import endpoint"})
+}
+
+func handleDriversTemplate(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers template endpoint"})
 }
