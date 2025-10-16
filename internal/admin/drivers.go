@@ -52,7 +52,7 @@ func (s *DriverService) ListDrivers() ([]Driver, error) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT id, name, phone, COALESCE(car_number, ''), COALESCE(cities, '') FROM drivers ORDER BY name`)
+	rows, err := db.Query(`SELECT id, name, COALESCE(phone, ''), COALESCE(car_number, ''), COALESCE(cities, '') FROM drivers ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}

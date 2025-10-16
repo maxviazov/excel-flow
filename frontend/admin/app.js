@@ -13,10 +13,16 @@ function showTab(tab) {
 async function loadCities() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/admin/cities`);
-        const cities = await res.json();
-        
-        const tbody = document.querySelector('#citiesTable tbody');
-        tbody.innerHTML = cities.map(city => `
+        allCities = await res.json();
+        renderCities(allCities);
+    } catch (err) {
+        alert('שגיאה בטעינת ערים: ' + err.message);
+    }
+}
+
+function renderCities(cities) {
+    const tbody = document.querySelector('#citiesTable tbody');
+    tbody.innerHTML = cities.map(city => `
             <tr>
                 <td>${city.code}</td>
                 <td>${city.name_heb}</td>
@@ -27,9 +33,6 @@ async function loadCities() {
                 </td>
             </tr>
         `).join('');
-    } catch (err) {
-        alert('שגיאה בטעינת ערים: ' + err.message);
-    }
 }
 
 async function addCity() {
@@ -88,10 +91,16 @@ async function deleteCity(code, isAlias) {
 async function loadDrivers() {
     try {
         const res = await fetch(`${API_BASE_URL}/api/admin/drivers`);
-        const drivers = await res.json();
-        
-        const tbody = document.querySelector('#driversTable tbody');
-        tbody.innerHTML = drivers.map(driver => `
+        allDrivers = await res.json();
+        renderDrivers(allDrivers);
+    } catch (err) {
+        alert('שגיאה בטעינת נהגים: ' + err.message);
+    }
+}
+
+function renderDrivers(drivers) {
+    const tbody = document.querySelector('#driversTable tbody');
+    tbody.innerHTML = drivers.map(driver => `
             <tr>
                 <td>${driver.name}</td>
                 <td>${driver.car_number || '-'}</td>
@@ -103,9 +112,6 @@ async function loadDrivers() {
                 </td>
             </tr>
         `).join('');
-    } catch (err) {
-        alert('שגיאה בטעינת נהגים: ' + err.message);
-    }
 }
 
 async function addDriver() {
@@ -205,6 +211,30 @@ async function deleteDriver(id) {
     } catch (err) {
         alert('שגיאה: ' + err.message);
     }
+}
+
+// Search filters
+let allCities = [];
+let allDrivers = [];
+
+function filterCities() {
+    const search = document.getElementById('citySearch').value.toLowerCase();
+    const filtered = allCities.filter(city => 
+        city.code.toLowerCase().includes(search) ||
+        city.name_heb.toLowerCase().includes(search) ||
+        (city.name_eng && city.name_eng.toLowerCase().includes(search))
+    );
+    renderCities(filtered);
+}
+
+function filterDrivers() {
+    const search = document.getElementById('driverSearch').value.toLowerCase();
+    const filtered = allDrivers.filter(driver =>
+        driver.name.toLowerCase().includes(search) ||
+        driver.phone.toLowerCase().includes(search) ||
+        (driver.car_number && driver.car_number.toLowerCase().includes(search))
+    );
+    renderDrivers(filtered);
 }
 
 // Initialize
