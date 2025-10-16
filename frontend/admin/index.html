@@ -17,6 +17,9 @@
 
         <div id="cities" class="section active">
             <h2>ניהול ערים</h2>
+            <div class="search-box">
+                <input type="text" id="citySearch" placeholder="🔍 חיפוש לפי קוד או שם..." oninput="filterCities()">
+            </div>
             <div class="form">
                 <input type="file" id="citiesFile" accept=".xlsx,.xls">
                 <button onclick="importCities()">ייבא מקובץ Excel</button>
@@ -48,6 +51,9 @@
 
         <div id="drivers" class="section">
             <h2>ניהול נהגים</h2>
+            <div class="search-box">
+                <input type="text" id="driverSearch" placeholder="🔍 חיפוש לפי שם או טלפון..." oninput="filterDrivers()">
+            </div>
             <div class="form">
                 <button onclick="downloadTemplate()">הורד תבנית Excel</button>
                 <input type="file" id="driversFile" accept=".xlsx,.xls">
