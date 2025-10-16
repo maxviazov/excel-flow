@@ -55,7 +55,7 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
 		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)
 		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908")
-		f.SetCellValue(sh, fmt.Sprintf("D%d", row), time.Now())
+		f.SetCellStr(sh, fmt.Sprintf("D%d", row), time.Now().Format("02/01/2006"))
 		
 		// 5-7: vehicle and driver info
 		if driverRegistry != nil {
