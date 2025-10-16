@@ -60,8 +60,10 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		f.SetCellStr(sh, fmt.Sprintf("A%d", row), "דולינה גרופ בע\"מ")
 		f.SetCellValue(sh, fmt.Sprintf("B%d", row), 511777856)
 		f.SetCellStr(sh, fmt.Sprintf("C%d", row), "P1908")
-		// Set date with date-only format
-		f.SetCellValue(sh, fmt.Sprintf("D%d", row), time.Now())
+		// Set date with date-only format (truncate time to midnight)
+		now := time.Now()
+		dateOnly := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		f.SetCellValue(sh, fmt.Sprintf("D%d", row), dateOnly)
 		f.SetCellStyle(sh, fmt.Sprintf("D%d", row), fmt.Sprintf("D%d", row), dateStyle)
 		
 		// 5-7: vehicle and driver info
