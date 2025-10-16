@@ -40,7 +40,7 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 
 	// Create date style (date only, no time)
 	dateStyle, _ := f.NewStyle(&excelize.Style{
-		NumFmt: 14, // dd/mm/yyyy format
+		CustomNumFmt: strPtr("dd/mm/yyyy"),
 	})
 
 	// Write data rows
@@ -102,6 +102,10 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 
 func boolPtr(b bool) *bool {
 	return &b
+}
+
+func strPtr(s string) *string {
+	return &s
 }
 
 func parseNumber(s string) interface{} {
