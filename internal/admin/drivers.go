@@ -72,7 +72,7 @@ func (s *DriverService) ListDrivers() ([]Driver, error) {
 	}
 	defer rows.Close()
 
-	var drivers []Driver
+	drivers := make([]Driver, 0)
 	for rows.Next() {
 		var d Driver
 		if err := rows.Scan(&d.ID, &d.Name, &d.Phone, &d.CarNumber, &d.CityCodes, &d.CityNames); err != nil {
