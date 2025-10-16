@@ -58,6 +58,19 @@
         .preview-table th, .preview-table td { padding: 8px; border: 1px solid #dee2e6; text-align: right; font-size: 12px; }
         .preview-table th { background: #667eea; color: white; }
         
+        /* Batch Queue */
+        .batch-queue { background: #f8f9ff; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .batch-item { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .batch-item .name { flex: 1; font-weight: bold; }
+        .batch-item .status { padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+        .batch-item .status.pending { background: #ffc107; color: #000; }
+        .batch-item .status.processing { background: #17a2b8; color: white; }
+        .batch-item .status.success { background: #28a745; color: white; }
+        .batch-item .status.error { background: #dc3545; color: white; }
+        .batch-item .remove-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .batch-actions { margin-top: 10px; display: flex; gap: 10px; }
+        .download-all-btn { background: #28a745; }
+        
         .log { background: #1e1e1e; color: #00ff00; padding: 20px; border-radius: 8px; font-family: monospace; max-height: 300px; overflow-y: auto; margin-top: 20px; display: none; }
         .log-line { margin: 5px 0; }
         .result { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 20px; border-radius: 8px; margin-top: 20px; display: none; }
@@ -78,14 +91,17 @@
         
         <div class="upload-area" id="uploadArea">
             <div class="icon">📁</div>
-            <h3>בחר קובץ Excel לעיבוד</h3>
-            <p>גרור קובץ לכאן או לחץ לבחירה</p>
-            <input type="file" id="fileInput" accept=".xlsx,.xls">
+            <h3>בחר קבצי Excel לעיבוד</h3>
+            <p>גרור קבצים לכאן או לחץ לבחירה (עד 5 קבצים)</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" multiple>
         </div>
 
         <div id="fileInfo" class="file-info" style="display:none;">
-            <strong>קובץ נבחר:</strong> <span id="fileName"></span>
+            <strong>קבצים נבחרו:</strong> <span id="fileName"></span>
         </div>
+        
+        <!-- Batch Processing Queue -->
+        <div id="batchQueue" class="batch-queue" style="display:none;"></div>
         
         <!-- Preview Section -->
         <div id="preview" class="preview"></div>

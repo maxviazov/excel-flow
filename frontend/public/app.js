@@ -16,6 +16,8 @@ const toastContainer = document.getElementById('toastContainer');
 
 let uploadedFile = null;
 let currentFileData = null;
+let batchFiles = [];
+const MAX_BATCH_SIZE = 5;
 
 // Initialize
 loadHistory();
@@ -42,14 +44,31 @@ uploadArea.ondrop = (e) => {
 fileInput.onchange = handleFileSelect;
 
 function handleFileSelect() {
-    const file = fileInput.files[0];
-    if (file) {
+    const files = Array.from(fileInput.files);
+    if (files.length === 0) return;
+    
+    if (files.length === 1) {
+        // Single file mode
         uploadedFile = null;
         processBtn.disabled = true;
-        fileName.textContent = file.name;
+        fileName.textContent = files[0].name;
         fileInfo.style.display = 'block';
         preview.style.display = 'none';
-        uploadFile(file);
+        batchQueue.style.display = 'none';
+        uploadFile(files[0]);
+    } else {
+        // Batch mode
+        if (files.length > MAX_BATCH_SIZE) {
+            showToast(`מקסימום ${MAX_BATCH_SIZE} קבצים בבת אחת`, 'error');
+            return;
+        }
+        batchFiles = files.map(f => ({ file: f, status: 'pending', uploadedPath: null, result: null }));
+        fileName.textContent = `${files.length} קבצים נבחרו`;
+        fileInfo.style.display = 'block';
+        preview.style.display = 'none';
+        renderBatchQueue();
+        processBtn.disabled = false;
+        processBtn.textContent = `▶️ עבד ${files.length} קבצים`;
     }
 }
 
@@ -97,6 +116,11 @@ async function showPreview(file) {
 }
 
 processBtn.onclick = async () => {
+    if (batchFiles.length > 0) {
+        await processBatch();
+        return;
+    }
+    
     if (!uploadedFile) return;
 
     processBtn.disabled = true;
@@ -261,4 +285,130 @@ function formatFileSize(bytes) {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Batch Processing
+function renderBatchQueue() {
+    batchQueue.style.display = 'block';
+    batchQueue.innerHTML = `
+        <h3>📦 תור עיבוד (${batchFiles.length} קבצים)</h3>
+        ${batchFiles.map((item, idx) => `
+            <div class="batch-item" id="batch-${idx}">
+                <div class="name">${item.file.name}</div>
+                <div class="status ${item.status}">${getStatusText(item.status)}</div>
+                ${item.status === 'pending' ? `<button class="remove-btn" onclick="removeBatchItem(${idx})">✕</button>` : ''}
+            </div>
+        `).join('')}
+    `;
+}
+
+function getStatusText(status) {
+    const texts = {
+        pending: '⏳ ממתין',
+        processing: '⚙️ מעבד',
+        success: '✅ הושלם',
+        error: '❌ שגיאה'
+    };
+    return texts[status] || status;
+}
+
+function removeBatchItem(idx) {
+    batchFiles.splice(idx, 1);
+    if (batchFiles.length === 0) {
+        batchQueue.style.display = 'none';
+        processBtn.disabled = true;
+    } else {
+        renderBatchQueue();
+        processBtn.textContent = `▶️ עבד ${batchFiles.length} קבצים`;
+    }
+}
+
+async function processBatch() {
+    processBtn.disabled = true;
+    showToast(`מתחיל עיבוד ${batchFiles.length} קבצים...`, 'info');
+    
+    for (let i = 0; i < batchFiles.length; i++) {
+        const item = batchFiles[i];
+        item.status = 'processing';
+        renderBatchQueue();
+        
+        try {
+            // Upload
+            const formData = new FormData();
+            formData.append('file', item.file);
+            const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, { method: 'POST', body: formData });
+            const uploadData = await uploadRes.json();
+            
+            if (!uploadRes.ok) throw new Error('Upload failed');
+            
+            item.uploadedPath = uploadData.fullPath || uploadData.path;
+            
+            // Validate
+            const validateRes = await fetch(`${API_BASE_URL}/api/validate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath: item.uploadedPath })
+            });
+            const validateData = await validateRes.json();
+            
+            if (!validateData.valid) {
+                throw new Error(validateData.error || 'Validation failed');
+            }
+            
+            // Process
+            const outputFile = `moh_${Date.now()}_${i}.xlsx`;
+            const processRes = await fetch(`${API_BASE_URL}/api/process`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inputFile: item.uploadedPath, outputFile })
+            });
+            
+            const processData = await processRes.json();
+            
+            if (processData.success) {
+                item.status = 'success';
+                item.result = processData;
+                addToHistory({
+                    fileName: item.file.name,
+                    outputFile: processData.outputFile,
+                    inputRows: processData.inputRows,
+                    outputRows: processData.outputRows,
+                    timestamp: Date.now()
+                });
+            } else {
+                item.status = 'error';
+            }
+        } catch (err) {
+            item.status = 'error';
+            showToast(`שגיאה בעיבוד ${item.file.name}`, 'error');
+        }
+        
+        renderBatchQueue();
+    }
+    
+    const successCount = batchFiles.filter(f => f.status === 'success').length;
+    showToast(`הושלם! ${successCount}/${batchFiles.length} קבצים עובדו בהצלחה`, 'success');
+    
+    // Show download all button
+    if (successCount > 0) {
+        const downloadAllBtn = document.createElement('div');
+        downloadAllBtn.className = 'batch-actions';
+        downloadAllBtn.innerHTML = `
+            <button class="btn download-all-btn" onclick="downloadAllBatch()">⬇️ הורד את כל הקבצים (${successCount})</button>
+        `;
+        batchQueue.appendChild(downloadAllBtn);
+    }
+    
+    processBtn.disabled = false;
+    processBtn.textContent = '▶️ התחל עיבוד';
+}
+
+function downloadAllBatch() {
+    const successFiles = batchFiles.filter(f => f.status === 'success');
+    successFiles.forEach((item, idx) => {
+        setTimeout(() => {
+            downloadFile(item.result.outputFile);
+        }, idx * 500);
+    });
+    showToast(`מוריד ${successFiles.length} קבצים...`, 'info');
 }
