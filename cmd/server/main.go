@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/maxviazov/excel-flow/internal/admin"
 	"github.com/maxviazov/excel-flow/internal/app"
 )
 
@@ -28,40 +27,11 @@ type ProcessResponse struct {
 	ProcessTime string `json:"processTime"`
 }
 
-var (
-	cityService   *admin.CityService
-	driverService *admin.DriverService
-)
-
 func main() {
-	// Ensure writable directory for drivers DB
-	os.MkdirAll("/tmp/data", 0755)
-
-	// Copy drivers.db to writable location if not exists
-	driverDBPath := "/tmp/data/drivers.db"
-	if _, err := os.Stat(driverDBPath); os.IsNotExist(err) {
-		if src, err := os.Open("configs/dictionaries/drivers.db"); err == nil {
-			defer src.Close()
-			if dst, err := os.Create(driverDBPath); err == nil {
-				defer dst.Close()
-				io.Copy(dst, src)
-			}
-		}
-	}
-
-	cityService = admin.NewCityService("configs/dictionaries/city.db")
-	driverService = admin.NewDriverService(driverDBPath)
-
-	// API endpoints only
+	// API endpoints
 	http.HandleFunc("/api/upload", handleUpload)
 	http.HandleFunc("/api/process", handleProcess)
 	http.HandleFunc("/api/download/", handleDownload)
-	http.HandleFunc("/api/admin/cities", handleCities)
-	http.HandleFunc("/api/admin/cities/alias", handleCityAlias)
-	http.HandleFunc("/api/admin/cities/import", handleCitiesImport)
-	http.HandleFunc("/api/admin/drivers", handleDrivers)
-	http.HandleFunc("/api/admin/drivers/import", handleDriversImport)
-	http.HandleFunc("/api/admin/drivers/template", handleDriversTemplate)
 	http.HandleFunc("/health", handleHealth)
 
 	port := os.Getenv("PORT")
@@ -210,29 +180,4 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-// Admin handlers (stubs for now)
-func handleCities(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Cities endpoint"})
-}
-
-func handleCityAlias(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "City alias endpoint"})
-}
-
-func handleCitiesImport(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Cities import endpoint"})
-}
-
-func handleDrivers(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers endpoint"})
-}
-
-func handleDriversImport(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers import endpoint"})
-}
-
-func handleDriversTemplate(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Drivers template endpoint"})
 }
