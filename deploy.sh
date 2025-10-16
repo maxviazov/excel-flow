@@ -11,7 +11,7 @@ IMAGE_TAG="latest"
 
 # Build Docker image
 echo "📦 Building Docker image..."
-docker build -t $ECR_REPO:$IMAGE_TAG .
+docker buildx build --platform linux/amd64 -t $ECR_REPO:$IMAGE_TAG --load .
 
 # Login to ECR
 echo "🔐 Logging in to ECR..."
