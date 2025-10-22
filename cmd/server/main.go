@@ -162,7 +162,7 @@ func handleProcess(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	os.MkdirAll("./outputs", 0755)
-	filename := fmt.Sprintf("דולינה_גרופ_%s.xlsx", time.Now().Format("2006-01-02"))
+	filename := fmt.Sprintf("דולינה_גרופ_%s.xlsx", time.Now().Format("2006-01-02_15-04-05"))
 	outputPath := filepath.Join("./outputs", filename)
 
 	inputRows, outputRows, err := app.ProcessFile(req.InputFile, outputPath)

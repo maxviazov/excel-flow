@@ -59,6 +59,20 @@ func ProcessSAPData(data []map[string]string) (map[GroupKey]*GroupVal, error) {
 		// Извлекаем город из адреса (до первой запятой)
 		cityName, streetAddress := extractCityFromAddress(fullAddress)
 		cityCode, cityNameHeb := lookupCityInfo(cityName)
+		
+		// Если город не найден (код 9999), пробуем извлечь из названия клиента
+		if cityCode == "9999" && clientName != "" {
+			extractedCity := extractCityFromClientName(clientName)
+			if extractedCity != "" {
+				newCode, newHebName := lookupCityInfo(extractedCity)
+				if newCode != "9999" {
+					cityCode = newCode
+					cityNameHeb = newHebName
+					cityName = extractedCity
+				}
+			}
+		}
+		
 		// В колонку address записываем только улицу, город указывается кодом
 		address := streetAddress
 
@@ -187,6 +201,30 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// extractCityFromClientName пытается извлечь название города из названия клиента
+func extractCityFromClientName(clientName string) string {
+	// Список известных городов для поиска в названии
+	cityPatterns := []string{
+		"קירית ביאליק", "קריית ביאליק",
+		"קירית ים", "קריית ים",
+		"קירית אתא", "קריית אתא",
+		"קירית מוצקין", "קריית מוצקין",
+		"קירית שמונה", "קריית שמונה",
+		"קירית גת", "קריית גת",
+		"קירית אונו", "קריית אונו",
+		"ראשל\"צ", "ראשון לציון",
+		"תל אביב", "ירושלים", "חיפה", "אשדוד", "נתניה", "באר שבע",
+	}
+	
+	for _, pattern := range cityPatterns {
+		if strings.Contains(clientName, pattern) {
+			return pattern
+		}
+	}
+	
+	return ""
 }
 
 // lookupCityInfo ищет код города и название на иврите в SQLite базе
