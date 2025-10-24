@@ -87,9 +87,9 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		// O-V are empty (meat/fish categories)
 		f.SetCellValue(sh, fmt.Sprintf("W%d", row), v.TotalWeight) // Col 23
 		// X, Y are empty
-		f.SetCellValue(sh, fmt.Sprintf("Z%d", row), v.TotalWeight) // Col 26
-		f.SetCellValue(sh, fmt.Sprintf("AA%d", row), v.TotalWeight) // Col 27
-		f.SetCellValue(sh, fmt.Sprintf("AB%d", row), 1) // Col 28
+		f.SetCellValue(sh, fmt.Sprintf("Z%d", row), v.TotalPackages) // Col 26 - упаковки
+		f.SetCellValue(sh, fmt.Sprintf("AA%d", row), v.TotalWeight) // Col 27 - вес
+		f.SetCellValue(sh, fmt.Sprintf("AB%d", row), 1) // Col 28 - сбб יומי
 		// AC, AD are empty
 		row++
 	}
