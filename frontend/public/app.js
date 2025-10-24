@@ -128,19 +128,19 @@ processBtn.onclick = async () => {
     
     // Show progress
     progressContainer.style.display = 'block';
-    updateProgress(0, 'מתחיל עיבוד...');
+    updateProgress(0, t('processingStarted'));
     
-    showToast('⚙️ מתחיל עיבוד...', 'info');
-    addLog('⚙️ מתחיל עיבוד...');
+    showToast(t('processingStarted'), 'info');
+    addLog(t('processingStarted'));
 
     const outputFile = `moh_${Date.now()}.xlsx`;
 
     try {
         // Simulate progress
-        updateProgress(20, 'קורא קובץ...');
+        updateProgress(20, t('readingFile'));
         await sleep(300);
         
-        updateProgress(40, 'מעבד נתונים...');
+        updateProgress(40, t('processingData'));
         
         const res = await fetch(`${API_BASE_URL}/api/process`, {
             method: 'POST',
@@ -148,29 +148,29 @@ processBtn.onclick = async () => {
             body: JSON.stringify({ inputFile: uploadedFile, outputFile })
         });
 
-        updateProgress(80, 'משלים עיבוד...');
+        updateProgress(80, t('completing'));
         const data = await res.json();
         
-        updateProgress(100, 'הושלם!');
+        updateProgress(100, t('completed'));
         await sleep(500);
         progressContainer.style.display = 'none';
 
         if (data.success) {
-            showToast('✅ עיבוד הושלם בהצלחה!', 'success');
-            addLog('✅ עיבוד הושלם בהצלחה');
-            addLog(`📊 שורות קלט: ${data.inputRows}`);
-            addLog(`📊 שורות פלט: ${data.outputRows}`);
-            addLog(`⏱️ זמן עיבוד: ${data.processTime}`);
+            showToast(t('processingComplete'), 'success');
+            addLog(t('processingComplete'));
+            addLog(`📊 ${t('inputRows')} ${data.inputRows}`);
+            addLog(`📊 ${t('outputRows')} ${data.outputRows}`);
+            addLog(`⏱️ ${t('processTime')} ${data.processTime}`);
             
             result.className = 'result';
             result.innerHTML = `
-                <h3>✅ הקובץ עובד בהצלחה!</h3>
-                <p><strong>שורות בקובץ המקור:</strong> ${data.inputRows}</p>
-                <p><strong>שורות בקובץ הסופי:</strong> ${data.outputRows}</p>
-                <p><strong>זמן עיבוד:</strong> ${data.processTime}</p>
+                <h3>${t('processingComplete')}</h3>
+                <p><strong>${t('inputRows')}</strong> ${data.inputRows}</p>
+                <p><strong>${t('outputRows')}</strong> ${data.outputRows}</p>
+                <p><strong>${t('processTime')}</strong> ${data.processTime}</p>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn" onclick="downloadFile('${data.outputFile}')" style="flex: 1;">⬇️ הורד Excel</button>
-                    <button class="btn btn-secondary" onclick="downloadCSV('${data.outputFile}')" style="flex: 1;">📄 הורד CSV</button>
+                    <button class="btn" onclick="downloadFile('${data.outputFile}')" style="flex: 1;">${t('downloadExcel')}</button>
+                    <button class="btn btn-secondary" onclick="downloadCSV('${data.outputFile}')" style="flex: 1;">${t('downloadCSV')}</button>
                 </div>
             `;
             result.style.display = 'block';
@@ -184,10 +184,10 @@ processBtn.onclick = async () => {
                 timestamp: Date.now()
             });
         } else {
-            showToast('❌ שגיאה בעיבוד', 'error');
-            addLog('❌ שגיאה: ' + data.message, true);
+            showToast(t('processingError'), 'error');
+            addLog(t('processingError') + ': ' + data.message, true);
             result.className = 'result error';
-            result.innerHTML = `<h3>❌ שגיאה בעיבוד</h3><p>${data.message}</p>`;
+            result.innerHTML = `<h3>${t('processingError')}</h3><p>${data.message}</p>`;
             result.style.display = 'block';
         }
     } catch (err) {
@@ -244,21 +244,21 @@ function loadHistory() {
         <div class="history-item">
             <div class="info">
                 <div><strong>${item.fileName}</strong></div>
-                <div class="time">${new Date(item.timestamp).toLocaleString('he-IL')}</div>
+                <div class="time">${new Date(item.timestamp).toLocaleString()}</div>
                 <div style="font-size: 12px; color: #6c757d;">
-                    קלט: ${item.inputRows} | פלט: ${item.outputRows}
+                    ${t('inputRows')}: ${item.inputRows} | ${t('outputRows')}: ${item.outputRows}
                 </div>
             </div>
-            <button class="download-btn" onclick="downloadFile('${item.outputFile}')">⬇️ הורד</button>
+            <button class="download-btn" onclick="downloadFile('${item.outputFile}')">${t('downloadExcel')}</button>
         </div>
     `).join('');
 }
 
 function clearHistory() {
-    if (confirm('האם למחוק את כל ההיסטוריה?')) {
+    if (confirm(t('confirmClear'))) {
         localStorage.removeItem('excelFlowHistory');
         loadHistory();
-        showToast('🗑️ ההיסטוריה נמחקה', 'info');
+        showToast(t('historyCleared'), 'info');
     }
 }
 
@@ -276,12 +276,12 @@ function addLog(message, isError = false) {
 // Download
 function downloadFile(filename) {
     window.location.href = `${API_BASE_URL}/api/download/${filename}`;
-    showToast('⬇️ מוריד קובץ...', 'info');
+    showToast(t('downloading'), 'info');
 }
 
 function downloadCSV(filename) {
     window.location.href = `${API_BASE_URL}/api/export-csv/${filename}`;
-    showToast('📄 מייצא ל-CSV...', 'info');
+    showToast(t('exportingCSV'), 'info');
 }
 
 // Utilities
@@ -299,7 +299,7 @@ function sleep(ms) {
 function renderBatchQueue() {
     batchQueue.style.display = 'block';
     batchQueue.innerHTML = `
-        <h3>📦 תור עיבוד (${batchFiles.length} קבצים)</h3>
+        <h3>${t('batchQueue')} (${batchFiles.length} ${t('files')})</h3>
         ${batchFiles.map((item, idx) => `
             <div class="batch-item" id="batch-${idx}">
                 <div class="name">${item.file.name}</div>
@@ -312,10 +312,10 @@ function renderBatchQueue() {
 
 function getStatusText(status) {
     const texts = {
-        pending: '⏳ ממתין',
-        processing: '⚙️ מעבד',
-        success: '✅ הושלם',
-        error: '❌ שגיאה'
+        pending: t('statusPending'),
+        processing: t('statusProcessing'),
+        success: t('statusSuccess'),
+        error: t('statusError')
     };
     return texts[status] || status;
 }
@@ -327,13 +327,13 @@ function removeBatchItem(idx) {
         processBtn.disabled = true;
     } else {
         renderBatchQueue();
-        processBtn.textContent = `▶️ עבד ${batchFiles.length} קבצים`;
+        processBtn.textContent = `▶️ ${t('processFiles')} ${batchFiles.length} ${t('files')}`;
     }
 }
 
 async function processBatch() {
     processBtn.disabled = true;
-    showToast(`מתחיל עיבוד ${batchFiles.length} קבצים...`, 'info');
+    showToast(`${t('processingStarted')} ${batchFiles.length} ${t('files')}...`, 'info');
     
     for (let i = 0; i < batchFiles.length; i++) {
         const item = batchFiles[i];
@@ -388,27 +388,27 @@ async function processBatch() {
             }
         } catch (err) {
             item.status = 'error';
-            showToast(`שגיאה בעיבוד ${item.file.name}`, 'error');
+            showToast(`${t('processingError')}: ${item.file.name}`, 'error');
         }
         
         renderBatchQueue();
     }
     
     const successCount = batchFiles.filter(f => f.status === 'success').length;
-    showToast(`הושלם! ${successCount}/${batchFiles.length} קבצים עובדו בהצלחה`, 'success');
+    showToast(`${t('processingComplete')}! ${successCount}/${batchFiles.length} ${t('files')}`, 'success');
     
     // Show download all button
     if (successCount > 0) {
         const downloadAllBtn = document.createElement('div');
         downloadAllBtn.className = 'batch-actions';
         downloadAllBtn.innerHTML = `
-            <button class="btn download-all-btn" onclick="downloadAllBatch()">⬇️ הורד את כל הקבצים (${successCount})</button>
+            <button class="btn download-all-btn" onclick="downloadAllBatch()">${t('downloadAll')} (${successCount})</button>
         `;
         batchQueue.appendChild(downloadAllBtn);
     }
     
     processBtn.disabled = false;
-    processBtn.textContent = '▶️ התחל עיבוד';
+    processBtn.textContent = `▶️ ${t('startProcessing')}`;
 }
 
 function downloadAllBatch() {
@@ -418,5 +418,5 @@ function downloadAllBatch() {
             downloadFile(item.result.outputFile);
         }, idx * 500);
     });
-    showToast(`מוריד ${successFiles.length} קבצים...`, 'info');
+    showToast(`${t('downloading')} ${successFiles.length} ${t('files')}...`, 'info');
 }
