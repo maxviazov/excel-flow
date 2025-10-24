@@ -43,11 +43,8 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 	for _, k := range keys {
 		v := groups[k]
 		
-		// Copy styles from template row 2 (skip column D - date)
+		// Copy styles from template row 2
 		for col := 1; col <= 30; col++ {
-			if col == 4 { // Skip column D
-				continue
-			}
 			templateCell, _ := excelize.CoordinatesToCellName(col, 2)
 			targetCell, _ := excelize.CoordinatesToCellName(col, row)
 			styleID, _ := f.GetCellStyle(sh, templateCell)
