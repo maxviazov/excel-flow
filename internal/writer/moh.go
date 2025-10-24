@@ -69,7 +69,10 @@ func WriteMOH(path string, groups map[pipelines.GroupKey]*pipelines.GroupVal, dr
 		}
 		
 		if v.ClientName != "" {
-			f.SetCellStr(sh, fmt.Sprintf("H%d", row), textutil.SanitizeForMOH(v.ClientName))
+			clientName := textutil.SanitizeForMOH(v.ClientName)
+			// Transliterate English names to Hebrew
+			clientName = textutil.TransliterateToHebrew(clientName)
+			f.SetCellStr(sh, fmt.Sprintf("H%d", row), clientName)
 		}
 		f.SetCellStr(sh, fmt.Sprintf("I%d", row), "קמעונאי")
 		if v.CityCode != "" {
