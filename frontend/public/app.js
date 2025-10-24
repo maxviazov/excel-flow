@@ -46,7 +46,7 @@ fileInput.onchange = handleFileSelect;
 function handleFileSelect() {
     const files = Array.from(fileInput.files);
     if (files.length === 0) return;
-    
+
     if (files.length === 1) {
         // Single file mode
         uploadedFile = null;
@@ -62,7 +62,7 @@ function handleFileSelect() {
             showToast(`${t('maxFiles')} ${MAX_BATCH_SIZE} ${t('filesAtOnce')}`, 'error');
             return;
         }
-        batchFiles = files.map(f => ({ file: f, status: 'pending', uploadedPath: null, result: null }));
+        batchFiles = files.map(f => ({file: f, status: 'pending', uploadedPath: null, result: null}));
         fileName.textContent = `${files.length} ${t('files')}`;
         fileInfo.style.display = 'block';
         preview.style.display = 'none';
@@ -75,7 +75,7 @@ function handleFileSelect() {
 async function uploadFile(file) {
     showToast(t('uploadingFile'), 'info');
     addLog(t('uploadingFile'));
-    
+
     const formData = new FormData();
     formData.append('file', file);
 
