@@ -8,41 +8,48 @@
 </head>
 <body>
     <div class="container">
-        <h1>ניהול מאגרי מידע</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;" data-i18n="heading">ניהול מאגרי מידע</h1>
+            <div style="display: flex; gap: 5px;">
+                <button data-lang="he" onclick="setLanguage('he')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="עברית">🇮🇱 HE</button>
+                <button data-lang="ru" onclick="setLanguage('ru')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="Русский">🇷🇺 RU</button>
+                <button data-lang="en" onclick="setLanguage('en')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="English">🇬🇧 EN</button>
+            </div>
+        </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="showTab('cities')">ערים</button>
-            <button class="tab" onclick="showTab('drivers')">נהגים</button>
+            <button class="tab active" onclick="showTab('cities')" data-i18n="citiesTab">ערים</button>
+            <button class="tab" onclick="showTab('drivers')" data-i18n="driversTab">נהגים</button>
         </div>
 
         <div id="cities" class="section active">
-            <h2>ניהול ערים</h2>
+            <h2 data-i18n="citiesManagement">ניהול ערים</h2>
             <div class="search-box">
-                <input type="text" id="citySearch" placeholder="🔍 חיפוש לפי קוד או שם..." oninput="filterCities()">
+                <input type="text" id="citySearch" data-i18n="citySearch" placeholder="🔍 חיפוש לפי קוד או שם..." oninput="filterCities()">
             </div>
             <div class="form">
                 <input type="file" id="citiesFile" accept=".xlsx,.xls">
-                <button onclick="importCities()">ייבא מקובץ Excel</button>
+                <button onclick="importCities()" data-i18n="importFromExcel">ייבא מקובץ Excel</button>
             </div>
             <div class="form">
-                <input type="text" id="cityCode" placeholder="קוד עיר">
-                <input type="text" id="cityNameHeb" placeholder="שם בעברית">
-                <input type="text" id="cityNameEng" placeholder="שם באנגלית">
-                <button onclick="addCity()">הוסף עיר</button>
+                <input type="text" id="cityCode" data-i18n="cityCode" placeholder="קוד עיר">
+                <input type="text" id="cityNameHeb" data-i18n="cityNameHeb" placeholder="שם בעברית">
+                <input type="text" id="cityNameEng" data-i18n="cityNameEng" placeholder="שם באנגלית">
+                <button onclick="addCity()" data-i18n="addCity">הוסף עיר</button>
             </div>
             <div class="form">
-                <input type="text" id="aliasHeb" placeholder="כינוי בעברית">
-                <input type="text" id="aliasCityCode" placeholder="קוד עיר">
-                <button onclick="addAlias()">הוסף כינוי</button>
+                <input type="text" id="aliasHeb" data-i18n="aliasHeb" placeholder="כינוי בעברית">
+                <input type="text" id="aliasCityCode" data-i18n="cityCode" placeholder="קוד עיר">
+                <button onclick="addAlias()" data-i18n="addAlias">הוסף כינוי</button>
             </div>
             <table id="citiesTable">
                 <thead>
                     <tr>
-                        <th>קוד</th>
-                        <th>שם עברי</th>
-                        <th>שם אנגלי</th>
-                        <th>סוג</th>
-                        <th>פעולות</th>
+                        <th data-i18n="code">קוד</th>
+                        <th data-i18n="hebrewName">שם עברי</th>
+                        <th data-i18n="englishName">שם אנגלי</th>
+                        <th data-i18n="type">סוג</th>
+                        <th data-i18n="actions">פעולות</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -50,32 +57,32 @@
         </div>
 
         <div id="drivers" class="section">
-            <h2>ניהול נהגים</h2>
+            <h2 data-i18n="driversManagement">ניהול נהגים</h2>
             <div class="search-box">
-                <input type="text" id="driverSearch" placeholder="🔍 חיפוש לפי שם או טלפון..." oninput="filterDrivers()">
+                <input type="text" id="driverSearch" data-i18n="driverSearch" placeholder="🔍 חיפוש לפי שם או טלפון..." oninput="filterDrivers()">
             </div>
             <div class="form">
-                <button onclick="downloadTemplate()">הורד תבנית Excel</button>
+                <button onclick="downloadTemplate()" data-i18n="downloadTemplate">הורד תבנית Excel</button>
                 <input type="file" id="driversFile" accept=".xlsx,.xls">
-                <button onclick="importDrivers()">ייבא מקובץ Excel</button>
+                <button onclick="importDrivers()" data-i18n="importFromExcel">ייבא מקובץ Excel</button>
             </div>
             <div class="form">
-                <input type="text" id="driverName" placeholder="שם נהג">
-                <input type="text" id="driverCarNumber" placeholder="מספר רכב">
-                <input type="text" id="driverPhone" placeholder="טלפון">
-                <input type="text" id="driverCityCodes" placeholder="קודי ערים (מופרד בפסיק)">
-                <input type="text" id="driverCityNames" placeholder="שמות ערים (מופרד בפסיק)">
-                <button onclick="addDriver()">הוסף נהג</button>
+                <input type="text" id="driverName" data-i18n="driverName" placeholder="שם נהג">
+                <input type="text" id="driverCarNumber" data-i18n="driverCarNumber" placeholder="מספר רכב">
+                <input type="text" id="driverPhone" data-i18n="driverPhone" placeholder="טלפון">
+                <input type="text" id="driverCityCodes" data-i18n="driverCityCodes" placeholder="קודי ערים (מופרד בפסיק)">
+                <input type="text" id="driverCityNames" data-i18n="driverCityNames" placeholder="שמות ערים (מופרד בפסיק)">
+                <button onclick="addDriver()" data-i18n="addDriver">הוסף נהג</button>
             </div>
             <table id="driversTable">
                 <thead>
                     <tr>
-                        <th>שם</th>
-                        <th>מספר רכב</th>
-                        <th>טלפון</th>
-                        <th>קודי ערים</th>
-                        <th>שמות ערים</th>
-                        <th>פעולות</th>
+                        <th data-i18n="name">שם</th>
+                        <th data-i18n="carNumber">מספר רכב</th>
+                        <th data-i18n="phone">טלפון</th>
+                        <th data-i18n="cityCodes">קודי ערים</th>
+                        <th data-i18n="cityNames">שמות ערים</th>
+                        <th data-i18n="actions">פעולות</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -84,6 +91,7 @@
     </div>
 
     <script src="../public/config.js"></script>
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
