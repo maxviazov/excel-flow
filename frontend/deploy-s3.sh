@@ -2,7 +2,7 @@
 
 # Скрипт деплоя фронтенда на S3
 
-BUCKET_NAME="excel-flow-frontend"
+BUCKET_NAME="excel-viazov-dev"
 REGION="us-east-1"
 
 echo "🚀 Deploying frontend to S3..."
