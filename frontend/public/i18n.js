@@ -143,8 +143,17 @@ const translations = {
     }
 };
 
-// Current language
-let currentLang = localStorage.getItem('excelFlowLang') || 'he';
+// Detect browser language
+function detectBrowserLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    if (browserLang.startsWith('he')) return 'he';
+    if (browserLang.startsWith('ru')) return 'ru';
+    if (browserLang.startsWith('en')) return 'en';
+    return 'he'; // Default to Hebrew
+}
+
+// Current language (priority: localStorage > browser > default)
+let currentLang = localStorage.getItem('excelFlowLang') || detectBrowserLanguage();
 
 // Get translation
 function t(key) {
@@ -163,6 +172,7 @@ function setLanguage(lang) {
     
     // Update all translatable elements
     updateTranslations();
+    updateLanguageButtons();
 }
 
 // Update all translations on page
@@ -187,4 +197,19 @@ function updateTranslations() {
 // Initialize language on load
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLang);
+    updateLanguageButtons();
 });
+
+// Update active language button
+function updateLanguageButtons() {
+    document.querySelectorAll('[data-lang]').forEach(btn => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang === currentLang) {
+            btn.style.background = '#667eea';
+            btn.style.color = 'white';
+        } else {
+            btn.style.background = 'white';
+            btn.style.color = '#667eea';
+        }
+    });
+}

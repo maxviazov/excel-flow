@@ -59,22 +59,22 @@ function handleFileSelect() {
     } else {
         // Batch mode
         if (files.length > MAX_BATCH_SIZE) {
-            showToast(`מקסימום ${MAX_BATCH_SIZE} קבצים בבת אחת`, 'error');
+            showToast(`${t('maxFiles')} ${MAX_BATCH_SIZE} ${t('filesAtOnce')}`, 'error');
             return;
         }
         batchFiles = files.map(f => ({ file: f, status: 'pending', uploadedPath: null, result: null }));
-        fileName.textContent = `${files.length} קבצים נבחרו`;
+        fileName.textContent = `${files.length} ${t('files')}`;
         fileInfo.style.display = 'block';
         preview.style.display = 'none';
         renderBatchQueue();
         processBtn.disabled = false;
-        processBtn.textContent = `▶️ עבד ${files.length} קבצים`;
+        processBtn.textContent = `▶️ ${t('processFiles')} ${files.length} ${t('files')}`;
     }
 }
 
 async function uploadFile(file) {
-    showToast('📤 מעלה קובץ...', 'info');
-    addLog('📤 מעלה קובץ...');
+    showToast(t('uploadingFile'), 'info');
+    addLog(t('uploadingFile'));
     
     const formData = new FormData();
     formData.append('file', file);
@@ -86,31 +86,31 @@ async function uploadFile(file) {
         if (res.ok) {
             uploadedFile = data.fullPath || data.path;
             currentFileData = { name: file.name, size: file.size };
-            showToast('✅ קובץ הועלה בהצלחה', 'success');
-            addLog('✅ קובץ הועלה בהצלחה');
+            showToast(t('fileUploaded'), 'success');
+            addLog(t('fileUploaded'));
             processBtn.disabled = false;
             
             // Show preview (simulated - in real app would parse Excel)
             showPreview(file);
         } else {
-            showToast('❌ שגיאה בהעלאת קובץ', 'error');
-            addLog('❌ שגיאה בהעלאת קובץ: ' + (data.error || 'Unknown error'), true);
+            showToast(t('uploadError'), 'error');
+            addLog(t('uploadError') + ': ' + (data.error || 'Unknown error'), true);
         }
     } catch (err) {
-        showToast('❌ שגיאה: ' + err.message, 'error');
-        addLog('❌ שגיאה: ' + err.message, true);
+        showToast('❌ ' + err.message, 'error');
+        addLog('❌ ' + err.message, true);
     }
 }
 
 async function showPreview(file) {
     preview.innerHTML = `
-        <h3>👁️ תצוגה מקדימה</h3>
+        <h3>${t('preview')}</h3>
         <div class="preview-stats">
-            <div class="preview-stat"><strong>שם קובץ:</strong> ${file.name}</div>
-            <div class="preview-stat"><strong>גודל:</strong> ${formatFileSize(file.size)}</div>
-            <div class="preview-stat"><strong>סוג:</strong> ${file.type || 'Excel'}</div>
+            <div class="preview-stat"><strong>${t('fileName')}</strong> ${file.name}</div>
+            <div class="preview-stat"><strong>${t('fileSize')}</strong> ${formatFileSize(file.size)}</div>
+            <div class="preview-stat"><strong>${t('fileType')}</strong> ${file.type || 'Excel'}</div>
         </div>
-        <p style="color: #6c757d; font-size: 14px;">✅ הקובץ מוכן לעיבוד</p>
+        <p style="color: #6c757d; font-size: 14px;">${t('fileReady')}</p>
     `;
     preview.style.display = 'block';
 }

@@ -87,24 +87,24 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h1 style="margin: 0;">🚀 Excel Flow</h1>
             <div style="display: flex; gap: 5px;">
-                <button onclick="setLanguage('he')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="עברית">🇮🇱 HE</button>
-                <button onclick="setLanguage('ru')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="Русский">🇷🇺 RU</button>
-                <button onclick="setLanguage('en')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="English">🇬🇧 EN</button>
+                <button data-lang="he" onclick="setLanguage('he')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="עברית">🇮🇱 HE</button>
+                <button data-lang="ru" onclick="setLanguage('ru')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="Русский">🇷🇺 RU</button>
+                <button data-lang="en" onclick="setLanguage('en')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s;" title="English">🇬🇧 EN</button>
             </div>
         </div>
         <div style="text-align: center; margin-bottom: 20px;">
-            <a href="/admin" target="_blank" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">⚙️ ניהול מאגרי מידע</a>
+            <a href="/admin" target="_blank" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;" data-i18n="adminLink">⚙️ ניהול מאגרי מידע</a>
         </div>
         
         <div class="upload-area" id="uploadArea">
             <div class="icon">📁</div>
-            <h3>בחר קבצי Excel לעיבוד</h3>
-            <p>גרור קבצים לכאן או לחץ לבחירה (עד 5 קבצים)</p>
+            <h3 data-i18n="uploadTitle">בחר קבצי Excel לעיבוד</h3>
+            <p data-i18n="uploadDesc">גרור קבצים לכאן או לחץ לבחירה (עד 5 קבצים)</p>
             <input type="file" id="fileInput" accept=".xlsx,.xls" multiple>
         </div>
 
         <div id="fileInfo" class="file-info" style="display:none;">
-            <strong>קבצים נבחרו:</strong> <span id="fileName"></span>
+            <strong data-i18n="filesSelected">קבצים נבחרו:</strong> <span id="fileName"></span>
         </div>
         
         <!-- Batch Processing Queue -->
@@ -113,7 +113,7 @@
         <!-- Preview Section -->
         <div id="preview" class="preview"></div>
 
-        <button id="processBtn" class="btn" disabled>▶️ התחל עיבוד</button>
+        <button id="processBtn" class="btn" data-i18n="startProcessing" disabled>▶️ התחל עיבוד</button>
         
         <!-- Progress Bar -->
         <div id="progressContainer" class="progress-container">
