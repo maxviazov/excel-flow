@@ -84,7 +84,14 @@
     <div class="toast-container" id="toastContainer"></div>
     
     <div class="container">
-        <h1>🚀 Excel Flow</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">🚀 Excel Flow</h1>
+            <div style="display: flex; gap: 5px;">
+                <button onclick="setLanguage('he')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="עברית">🇮🇱 HE</button>
+                <button onclick="setLanguage('ru')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="Русский">🇷🇺 RU</button>
+                <button onclick="setLanguage('en')" style="padding: 8px 12px; border: 2px solid #667eea; background: white; border-radius: 5px; cursor: pointer; font-weight: bold;" title="English">🇬🇧 EN</button>
+            </div>
+        </div>
         <div style="text-align: center; margin-bottom: 20px;">
             <a href="/admin" target="_blank" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">⚙️ ניהול מאגרי מידע</a>
         </div>
@@ -133,6 +140,7 @@
     </div>
 
     <script src="config.js"></script>
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
