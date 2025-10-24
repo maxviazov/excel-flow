@@ -17,8 +17,8 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REPO="excel-flow"
 IMAGE_TAG="latest"
 
-echo "📦 Building Docker image..."
-docker build -t $ECR_REPO:$IMAGE_TAG .
+echo "📦 Building Docker image for AMD64..."
+docker buildx build --platform linux/amd64 -t $ECR_REPO:$IMAGE_TAG .
 
 echo "🔐 Logging in to ECR..."
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
