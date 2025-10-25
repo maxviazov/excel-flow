@@ -1,4 +1,6 @@
 name: Excel Flow CI
+permissions:
+  contents: read
 
 on:
   push:
