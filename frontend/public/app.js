@@ -19,6 +19,16 @@ let currentFileData = null;
 let batchFiles = [];
 const MAX_BATCH_SIZE = 5;
 
+// Utility to escape HTML special characters
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 // Initialize
 loadHistory();
 
@@ -103,12 +113,15 @@ async function uploadFile(file) {
 }
 
 async function showPreview(file) {
+    // Escape values before inserting into innerHTML
+    const safeFileName = escapeHtml(file.name);
+    const safeFileType = escapeHtml(file.type || 'Excel');
     preview.innerHTML = `
         <h3>${t('preview')}</h3>
         <div class="preview-stats">
-            <div class="preview-stat"><strong>${t('fileName')}</strong> ${file.name}</div>
+            <div class="preview-stat"><strong>${t('fileName')}</strong> ${safeFileName}</div>
             <div class="preview-stat"><strong>${t('fileSize')}</strong> ${formatFileSize(file.size)}</div>
-            <div class="preview-stat"><strong>${t('fileType')}</strong> ${file.type || 'Excel'}</div>
+            <div class="preview-stat"><strong>${t('fileType')}</strong> ${safeFileType}</div>
         </div>
         <p style="color: #6c757d; font-size: 14px;">${t('fileReady')}</p>
     `;
