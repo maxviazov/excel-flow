@@ -231,6 +231,16 @@ function addToHistory(item) {
     loadHistory();
 }
 
+// Utility function to escape HTML meta-characters
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function loadHistory() {
     const historyData = JSON.parse(localStorage.getItem('excelFlowHistory') || '[]');
     
@@ -243,13 +253,13 @@ function loadHistory() {
     historyList.innerHTML = historyData.map(item => `
         <div class="history-item">
             <div class="info">
-                <div><strong>${item.fileName}</strong></div>
+                <div><strong>${escapeHtml(item.fileName)}</strong></div>
                 <div class="time">${new Date(item.timestamp).toLocaleString()}</div>
                 <div style="font-size: 12px; color: #6c757d;">
-                    ${t('inputRows')}: ${item.inputRows} | ${t('outputRows')}: ${item.outputRows}
+                    ${t('inputRows')}: ${escapeHtml(item.inputRows)} | ${t('outputRows')}: ${escapeHtml(item.outputRows)}
                 </div>
             </div>
-            <button class="download-btn" onclick="downloadFile('${item.outputFile}')">${t('downloadExcel')}</button>
+            <button class="download-btn" onclick="downloadFile('${escapeHtml(item.outputFile)}')">${t('downloadExcel')}</button>
         </div>
     `).join('');
 }
